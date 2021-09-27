@@ -1,0 +1,80 @@
+#include "sockets.h"
+#include "inetaddress.h"
+#include <stdio.h>
+#include <string.h>
+
+namespace Socket
+{
+    SocketPair::SocketPair()
+    :first_(-1), second_(1) 
+    {
+        int socket_pair[2] = {-1, -1};
+        if(0 > ::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, socket_pair))
+        {
+            //todo log
+            //abort();
+        }
+        
+        first_ = socket_pair[0];
+        second_ = socket_pair[1];
+    }
+    
+    Socket::Socket(TransType type) 
+    : sockfd_(-1), type_(type)
+    {
+        if(TransType::udp == type)
+            sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
+        else(TransType::tcp == type)
+            sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
+
+        if(0 > sockfd_)
+        {
+            //todo log
+        }
+    }
+    
+    void Socket::bindAddress(const InetAddress& localaddr) 
+    {
+        int ret = ::bind(sockfd_, static_cast<const struct sockaddr*>(localaddr.getSockAddr()), static_cast<socklen_t>(sizeof(struct sockaddr_in)));
+        if (ret < 0)
+        {
+            //todo log
+        }
+    }
+    
+    void Socket::listen() 
+    {
+        int ret = ::listen(sockfd_, SOMAXCONN);
+        if (ret < 0)
+        {
+            //todo log
+        }
+    }
+    
+    int Socket::accept(InetAddress* peeraddr) 
+    {
+        struct sockaddr_in addr;
+        memset(&addr, 0, sizeof addr);
+        int connfd = ::accept(sockfd_, addr, static_cast<socklen_t>(sizeof(addr)));
+        if (connfd >= 0)
+        {
+            peeraddr->setSockAddr(addr);
+        }
+
+        return connfd;
+    }
+    
+    void Socket::setReuseAddr(bool on) 
+    {
+        int optval = on ? 1 : 0;
+        ::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR,
+            &optval, static_cast<socklen_t>(sizeof optval));
+    }
+    
+    void Socket::setKeepAlive(bool on) 
+    {
+        int optval = on ? 1 : 0;
+        ::setsockopt(sockfd_, SOL_SOCKET, SO_KEEPALIVE,
+               &optval, static_cast<socklen_t>(sizeof optval));
+    }
+}
