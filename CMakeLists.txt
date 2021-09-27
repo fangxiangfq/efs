@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 project(echo CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "debug")
+  set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 set(CXX_FLAGS
@@ -19,11 +19,10 @@ set(CXX_FLAGS
  -Wshadow
  -Wwrite-strings
  -march=native
- -std=c++11
  -std=c++14
  -rdynamic
  )
-
+string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -finline-limit=1000 -DNDEBUG")

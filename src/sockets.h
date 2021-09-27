@@ -18,7 +18,7 @@ namespace Socket
         int second_;     
     };
 
-    enum TransType
+    enum class TransType
     { 
         udp,
         tcp,
