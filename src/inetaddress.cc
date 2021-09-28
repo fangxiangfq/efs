@@ -14,7 +14,7 @@ inline To implicit_cast(From const &f)
   return f;
 }
 
-namespace Socket
+namespace Net
 {
     const struct sockaddr* sockaddr_cast(const struct sockaddr_in* addr)
     {
@@ -41,7 +41,7 @@ namespace Socket
         memset(&addr_, 0, sizeof(addr_));
         addr_.sin_family = AF_INET;
         addr_.sin_port = htobe16(port);
-        if (::inet_pton(AF_INET, ip.c_str(), &addr_.sin_addr) <= 0)
+        if(::inet_pton(AF_INET, ip.c_str(), &addr_.sin_addr) <= 0)
         {
             //todo log
         }

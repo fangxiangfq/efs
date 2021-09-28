@@ -2,7 +2,7 @@
 #include <netinet/in.h>
 #include <string>
 
-namespace Socket
+namespace Net
 {
     const struct sockaddr* sockaddr_cast(const struct sockaddr_in* addr);
     struct sockaddr* sockaddr_cast(struct sockaddr_in* addr);

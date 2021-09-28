@@ -6,13 +6,12 @@
 namespace Socket
 {
     SocketPair::SocketPair()
-    :first_(-1), second_(1) 
+    :first_(-1), second_(-1) 
     {
         int socket_pair[2] = {-1, -1};
         if(0 > ::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, socket_pair))
         {
             //todo log
-            //abort();
         }
         
         first_ = socket_pair[0];
@@ -25,7 +24,7 @@ namespace Socket
         if(TransType::udp == type)
             sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_UDP);
         else if(TransType::tcp == type)
-            sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
+            sockfd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
 
         if(0 > sockfd_)
         {
@@ -33,10 +32,10 @@ namespace Socket
         }
     }
     
-    void Socket::bindAddress(const InetAddress& localaddr) 
+    void Socket::bindAddress(const Net::InetAddress& localaddr) 
     {
         int ret = ::bind(sockfd_, localaddr.getSockAddr(), static_cast<socklen_t>(sizeof(struct sockaddr_in)));
-        if (ret < 0)
+        if(ret < 0)
         {
             //todo log
         }
@@ -45,19 +44,19 @@ namespace Socket
     void Socket::listen() 
     {
         int ret = ::listen(sockfd_, SOMAXCONN);
-        if (ret < 0)
+        if(ret < 0)
         {
             //todo log
         }
     }
     
-    int Socket::accept(InetAddress* peeraddr) 
+    int Socket::accept(Net::InetAddress* peeraddr) 
     {
         struct sockaddr_in addr;
         socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
         memset(&addr, 0, sizeof addr);
         int connfd = ::accept(sockfd_, sockaddr_cast(&addr), &addrlen);
-        if (connfd >= 0)
+        if(connfd >= 0)
         {
             peeraddr->setSockAddr(addr);
         }

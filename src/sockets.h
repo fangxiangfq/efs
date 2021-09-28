@@ -3,8 +3,8 @@
 
 namespace Socket
 {
-    class InetAddress;
-
+    namespace Socket{class InetAddress;}
+    
     class SocketPair
     {
     public:
@@ -34,9 +34,9 @@ namespace Socket
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
         int fd() const { return sockfd_; }
-        void bindAddress(const InetAddress& localaddr);
+        void bindAddress(const Net::InetAddress& localaddr);
         void listen();
-        int accept(InetAddress* peeraddr);
+        int accept(Net::InetAddress* peeraddr);
         void setReuseAddr(bool on);
         void setKeepAlive(bool on);
 
