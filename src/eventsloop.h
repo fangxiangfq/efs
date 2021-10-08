@@ -1,26 +1,27 @@
 #pragma once
 #include <functional>
 #include <pthread.h>
+#include "event.h"
 
 namespace Event
 {
     class Event;
     class Epoller;
+    using functask = std::function<void()>;
     class EventsLoop
     {
-    public:
-        using functask =  std::function<void()>;
+    public:    
         EventsLoop();
         ~EventsLoop();  
         void loop();
 
-        void updateEvent(Event* event);
-        void removeEvent(Event* event);
-        bool emptyEvent();
+        void updateEvent(EventPtr event);
+        void removeEvent(EventPtr event);
+        bool empty();
         void quit();
         
     private:
-        void handletask();
+        void handleTask();
         bool looping_;
         bool taskfd_;
         //tid

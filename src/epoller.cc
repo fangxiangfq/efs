@@ -33,16 +33,17 @@ namespace Event
         }
 
         int event_ = 0;
+
         for(int i = 0; i < num; ++i)
 	    {
             event_ = epevents[i].events;
-
+            * channel = static_cast<Channel*>(events_[i].data.ptr);
         }
 
         return true;
     }
     
-    bool epoll_base::add(std::shared_ptr<Event> ev)
+    bool Epoller::add(std::shared_ptr<Event> ev)
     {
         struct epoll_event epev = {0};
         epev.data.fd = ev->fd;
@@ -55,6 +56,7 @@ namespace Event
 
         if(epoll_ctl(epfd_, op, ev->fd, &epev) == -1)
         {
+            //todo log
             return false;
         }
 
