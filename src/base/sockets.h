@@ -1,10 +1,9 @@
 #pragma once
 #include <sys/socket.h>
 
+namespace Net{class InetAddress;}
 namespace Socket
 {
-    namespace Socket{class InetAddress;}
-    
     class SocketPair
     {
     public:

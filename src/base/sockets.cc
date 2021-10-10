@@ -2,7 +2,7 @@
 #include "inetaddress.h"
 #include <stdio.h>
 #include <string.h>
-
+using namespace Net;
 namespace Socket
 {
     SocketPair::SocketPair()
@@ -32,7 +32,7 @@ namespace Socket
         }
     }
     
-    void Socket::bindAddress(const Net::InetAddress& localaddr) 
+    void Socket::bindAddress(const InetAddress& localaddr) 
     {
         int ret = ::bind(sockfd_, localaddr.getSockAddr(), static_cast<socklen_t>(sizeof(struct sockaddr_in)));
         if(ret < 0)
@@ -50,7 +50,7 @@ namespace Socket
         }
     }
     
-    int Socket::accept(Net::InetAddress* peeraddr) 
+    int Socket::accept(InetAddress* peeraddr) 
     {
         struct sockaddr_in addr;
         socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
