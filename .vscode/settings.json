@@ -44,7 +44,10 @@
         "ratio": "cpp",
         "xthread": "cpp",
         "thread": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "map": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp"
     },
     "cmake.configureOnOpen": true
 }

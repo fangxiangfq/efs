@@ -1,9 +1,11 @@
 #include "eventsloop.h"
 #include <assert.h>
+
 namespace Event
 {
     EventsLoop::EventsLoop()
     :looping_(false), 
+    quit_(true),
     tid_(std::this_thread::get_id()), 
     taskfd_(-1),
     taskev_(nullptr),
@@ -13,7 +15,8 @@ namespace Event
     }
     
     EventsLoop::EventsLoop(int taskfd)
-    :looping_(false), 
+    :looping_(false),
+    quit_(true),
     tid_(std::this_thread::get_id()), 
     taskfd_(taskfd),
     taskev_(new Event(this, taskfd_)),
@@ -32,7 +35,7 @@ namespace Event
         assert(!looping_);
         assertSelfThread();
         looping_ = true;
-        while(true)
+        while(quit_)
         {
             if(false == poller_->dispatch(-1))
             {

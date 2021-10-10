@@ -5,6 +5,7 @@
 #include <vector>
 #include "epoller.h"
 #include "event.h"
+#include <atomic>
 
 namespace Event
 {
@@ -25,8 +26,7 @@ namespace Event
                 return poller_->hasEvent(event); 
             return false;
         }
-        bool empty();
-        void quit();
+        void quit(){quit_ = true;};
         void assertSelfThread()
         {
             if(tid_ != std::this_thread::get_id())
@@ -38,8 +38,8 @@ namespace Event
     private:
         void handleTask();
         bool looping_;
+        std::atomic<bool> quit_;
         const std::thread::id tid_;
-        bool main_loop_;
         const int taskfd_;
         std::unique_ptr<Event> taskev_;
 
