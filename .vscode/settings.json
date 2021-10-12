@@ -47,7 +47,8 @@
         "xtree": "cpp",
         "map": "cpp",
         "condition_variable": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "atomic": "cpp"
     },
     "cmake.configureOnOpen": true
 }

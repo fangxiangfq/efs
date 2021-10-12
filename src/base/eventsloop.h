@@ -3,13 +3,14 @@
 #include <pthread.h>
 #include <thread>
 #include <vector>
+#include <map>
 #include "epoller.h"
 #include "event.h"
 #include <atomic>
 
 namespace Event
 {
-    using functask = std::function<void()>;
+    using taskcb = std::function<void(int fd, size_t len)>;
     class EventsLoop
     {
     public:    
@@ -40,11 +41,12 @@ namespace Event
         bool looping_;
         std::atomic<bool> quit_;
         const std::thread::id tid_;
+
         const int taskfd_;
         std::unique_ptr<Event> taskev_;
 
+        std::map<short, taskcb> taskmap_;
         std::unique_ptr<Epoller> poller_;
-        std::vector<int> worktaskfds_;
     };
 } // namespace Event
 

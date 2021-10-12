@@ -10,6 +10,14 @@ namespace Event
     class Event :public std::enable_shared_from_this<Event> 
     {
     public:
+    
+        enum class evType
+        {
+            udp,
+            tcplink,
+            tcpmsg,
+            internal
+        };
 
         Event(EventsLoop* loop, int fd);
         ~Event();

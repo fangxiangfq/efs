@@ -1,30 +1,42 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <vector>
 #include "thread.h"
-class ThreadPool
+#include "eventsloop.h"
+
+namespace Thread
 {
-public:
-    typedef std::function<void ()> Task;
+    class ThreadPool
+    {
+    public:
+        using ThreadInitCallback = std::function<void(Event::EventsLoop*)>;
 
-    explicit ThreadPool(const std::string& nameArg = std::string("ThreadPool"));
-    ~ThreadPool();
-    void setThreadInitCallback(const Task& cb)
-    { threadInitCallback_ = cb; }
+        ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg);
+        ~ThreadPool();
+        void setThreadNum(int numThreads) { numThreads_ = numThreads; }
+        void start(const ThreadInitCallback& cb = ThreadInitCallback());
 
-    void start(int numThreads);
-    void stop();
+        Event::EventsLoop* getNextLoop();
 
-    const std::string& name() const
-    { return name_; }
+        Event::EventsLoop* getLoopForHash(size_t hashCode);
 
-    size_t queueSize() const;
+        std::vector<Event::EventsLoop*> getAllLoops();
 
-    void run(Task f);
+        bool started() const
+        { return started_; }
 
-private:
-    std::string name_;
-    Task threadInitCallback_;
-    std::vector<std::unique_ptr<Thread>> threads_;
-    bool running_;
-};
+        const std::string& name() const
+        { return name_; }
+
+    private:
+
+        Event::EventsLoop* baseLoop_;
+        std::string name_;
+        bool started_;
+        int numThreads_;
+        size_t next_;
+        std::vector<std::unique_ptr<Thread>> threads_;
+        std::vector<Event::EventsLoop*> loops_;
+    };
+}
