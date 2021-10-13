@@ -7,11 +7,10 @@
 
 namespace Thread
 {
+    using ThreadInitCallback = std::function<void(Event::EventsLoop*)>;
     class ThreadPool
     {
     public:
-        using ThreadInitCallback = std::function<void(Event::EventsLoop*)>;
-
         ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg);
         ~ThreadPool();
         void setThreadNum(int numThreads) { numThreads_ = numThreads; }

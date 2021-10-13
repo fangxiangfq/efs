@@ -27,7 +27,7 @@ namespace Event
                 return poller_->hasEvent(event); 
             return false;
         }
-        void quit(){quit_ = true;};
+        void quit() { quit_ = true; }
         void assertSelfThread()
         {
             if(tid_ != std::this_thread::get_id())

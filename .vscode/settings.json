@@ -48,7 +48,8 @@
         "map": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "atomic": "cpp"
+        "atomic": "cpp",
+        "xxatomic": "cpp"
     },
     "cmake.configureOnOpen": true
 }
