@@ -46,12 +46,6 @@ namespace Event
         static const int kReadEvent;
         static const int kWriteEvent;
 
-        union Sock
-        {
-            Socket::SocketPair pSock;
-            Socket::Socket sSock;
-        };
-        
     };
 
     using EventPtr = std::shared_ptr<Event>;

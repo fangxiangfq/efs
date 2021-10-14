@@ -2,6 +2,8 @@
 #include "inetaddress.h"
 #include <stdio.h>
 #include <string.h>
+#include <sys/uio.h>  // readv
+#include <unistd.h>
 using namespace Net;
 namespace Socket
 {
@@ -18,6 +20,12 @@ namespace Socket
         second_ = socket_pair[1];
     }
     
+    SocketPair::~SocketPair() 
+    {
+        ::close(first_);
+        ::close(second_);
+    }
+    
     Socket::Socket(TransType type) 
     : sockfd_(-1), type_(type)
     {
@@ -30,6 +38,11 @@ namespace Socket
         {
             //todo log
         }
+    }
+    
+    Socket::~Socket()
+    {
+        ::close(sockfd_);
     }
     
     void Socket::bindAddress(const InetAddress& localaddr) 

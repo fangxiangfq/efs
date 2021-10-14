@@ -11,10 +11,10 @@ namespace Thread
     class ThreadPool
     {
     public:
-        ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg);
+        ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg, const Event::TaskMap& taskmap);
         ~ThreadPool();
         void setThreadNum(int numThreads) { numThreads_ = numThreads; }
-        void start(const ThreadInitCallback& cb = ThreadInitCallback());
+        void start(const Socket::SocketPairArr& threadFds, const ThreadInitCallback& cb = ThreadInitCallback());
 
         Event::EventsLoop* getNextLoop();
 
@@ -34,6 +34,8 @@ namespace Thread
         std::string name_;
         bool started_;
         int numThreads_;
+        Event::TaskMap& taskmap_;
+        
         size_t next_;
         std::vector<std::unique_ptr<Thread>> threads_;
         std::vector<Event::EventsLoop*> loops_;

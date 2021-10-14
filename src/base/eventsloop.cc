@@ -1,24 +1,13 @@
 #include "eventsloop.h"
-#include <assert.h>
 
 namespace Event
 {
-    EventsLoop::EventsLoop()
-    :looping_(false), 
-    quit_(false),
-    tid_(std::this_thread::get_id()), 
-    taskfd_(-1),
-    taskev_(nullptr),
-    poller_(new Epoller())
-    {
-        
-    }
-    
-    EventsLoop::EventsLoop(int taskfd)
+    EventsLoop::EventsLoop(int taskfd, const TaskMap& taskmap)
     :looping_(false),
     quit_(false),
     tid_(std::this_thread::get_id()), 
     taskfd_(taskfd),
+    taskmap_(taskmap),
     taskev_(new Event(this, taskfd_)),
     poller_(new Epoller())
     {

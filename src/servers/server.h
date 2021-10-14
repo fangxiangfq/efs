@@ -3,18 +3,15 @@
 #include "threadpool.h"
 #include <atomic>
 #include <string>
+#include <vector>
+
 //a base class sup http tcp udp etc
 namespace Server
 {
+    using 
     class Server
     {
     public:
-        enum class Type
-        {
-            udp,
-            tcp
-        };
-
         enum class Option
         {
             kNoReusePort,
@@ -22,8 +19,7 @@ namespace Server
         };
 
         Server(Event::EventsLoop* loop,
-            const std::string& nameArg,
-            Option option = Option::kReusePort);
+            const std::string& nameArg, const Event::TaskMap& taskmap);
         ~Server(){};
  
         void setThreadNum(int numThreads);
@@ -37,6 +33,7 @@ namespace Server
     protected:
         Event::EventsLoop* loop_;
         const std::string name_;
+        Socket::SocketPairArr threadFds_;
         std::shared_ptr<Thread::ThreadPool> threadPool_;
         Thread::ThreadInitCallback threadInitCallback_;
         std::atomic<bool> started_{false};

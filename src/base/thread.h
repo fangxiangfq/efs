@@ -16,8 +16,7 @@ namespace Thread
         using ThreadFunc = std::function<void ()>;
         using ThreadInitCallback = std::function<void(Event::EventsLoop*)>;
 
-        Thread(const ThreadInitCallback& cb = ThreadInitCallback(),
-                  const std::string& name = std::string());
+        Thread(const int& threadfd, const Event::TaskMap& taskmap, const ThreadInitCallback& cb = ThreadInitCallback(), const std::string& name = std::string());
         ~Thread();
         Thread(const Thread&) = delete;
 	    Thread& operator=(const Thread&) = delete;
@@ -31,5 +30,7 @@ namespace Thread
         std::condition_variable cond_;
         ThreadInitCallback callback_;
         const std::string name_;
+        const int threadfd_;
+        const Event::TaskMap& taskmap_;
     };
 }

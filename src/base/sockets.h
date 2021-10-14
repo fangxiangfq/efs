@@ -1,13 +1,16 @@
 #pragma once
 #include <sys/socket.h>
+#include <vector>
 
 namespace Net{class InetAddress;}
 namespace Socket
 {
+    using SocketPairArr = std::vector<Socket::SocketPair>; 
     class SocketPair
     {
     public:
         explicit SocketPair();
+        ~SocketPair();
         SocketPair(const SocketPair&)=delete;
         SocketPair operator=(const SocketPair&)=delete;
         int get_first(){return first_;}
@@ -29,7 +32,7 @@ namespace Socket
 
     public:
         explicit Socket(TransType type = TransType::udp);
-
+        ~Socket();
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
         int fd() const { return sockfd_; }
