@@ -12,12 +12,12 @@ namespace Event
     {
     public:
     
-        enum class evType
+        enum class EvType
         {
             udp,
             tcplink,
             tcpmsg,
-            internal
+            local
         };
 
         Event(EventsLoop* loop, int fd);

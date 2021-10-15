@@ -1,11 +1,11 @@
 #pragma once
 #include <sys/socket.h>
 #include <vector>
+#include <memory>
 
 namespace Net{class InetAddress;}
 namespace Socket
 {
-    using SocketPairArr = std::vector<Socket::SocketPair>; 
     class SocketPair
     {
     public:
@@ -20,18 +20,21 @@ namespace Socket
         int second_;     
     };
 
-    enum class TransType
+    using SocketPtr = std::unique_ptr<SocketPair>;
+    using SocketPairArr = std::vector<SocketPtr>; 
+
+    enum class SockType
     { 
         udp,
         tcp,
-        //local
+        tcplink,
     };
 //only support noblocking
     class Socket
     {
 
     public:
-        explicit Socket(TransType type = TransType::udp);
+        explicit Socket(SockType type = SockType::udp);
         ~Socket();
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
@@ -44,6 +47,6 @@ namespace Socket
 
     private:
         int sockfd_;
-        TransType type_;
+        SockType type_;
     };
 }// namespace socket

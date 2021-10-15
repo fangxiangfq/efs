@@ -26,12 +26,12 @@ namespace Socket
         ::close(second_);
     }
     
-    Socket::Socket(TransType type) 
+    Socket::Socket(SockType type) 
     : sockfd_(-1), type_(type)
     {
-        if(TransType::udp == type)
+        if(SockType::udp == type)
             sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_UDP);
-        else if(TransType::tcp == type)
+        else if(SockType::tcp == type)
             sockfd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
 
         if(0 > sockfd_)

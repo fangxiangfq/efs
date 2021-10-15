@@ -34,7 +34,7 @@ namespace Thread
         std::string name_;
         bool started_;
         int numThreads_;
-        Event::TaskMap& taskmap_;
+        const Event::TaskMap& taskmap_;
         
         size_t next_;
         std::vector<std::unique_ptr<Thread>> threads_;

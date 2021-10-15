@@ -4,7 +4,7 @@
 using namespace Event;
 namespace Thread
 {
-    Thread::Thread(const Event::TaskMap& taskmap, const ThreadInitCallback& cb,
+    Thread::Thread(const int& threadfd, const Event::TaskMap& taskmap, const ThreadInitCallback& cb,
                       const std::string& name) 
     :loop_(NULL),
     exiting_(false),
@@ -13,6 +13,7 @@ namespace Thread
     cond_(),
     callback_(cb),
     name_(name),
+    threadfd_(threadfd),
     taskmap_(taskmap)
     {
         
@@ -45,7 +46,7 @@ namespace Thread
     
     void Thread::threadFunc() 
     {
-        EventsLoop loop(taskmap_);
+        EventsLoop loop(threadfd_, taskmap_);
 
         if (callback_)
         {

@@ -18,7 +18,10 @@ namespace Server
         assert(0 <= numThreads);
         threadPool_->setThreadNum(numThreads);
         for(int i = 0; i < numThreads; ++i)
-            threadFds_.push_back(std::move(make_unique<Socket::SocketPair>());
+        {
+            Socket::SocketPtr sockpair =  std::make_unique<Socket::SocketPair>();
+            threadFds_.push_back(std::move(sockpair));
+        }
     }
 
     void Server::start()
@@ -29,4 +32,5 @@ namespace Server
             threadPool_->start(threadFds_, threadInitCallback_);
         }
     }
+
 }

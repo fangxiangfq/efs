@@ -8,7 +8,7 @@ namespace Thread
     name_(nameArg),
     started_(false),
     numThreads_(0),
-    taskmap_(taskmap)
+    taskmap_(taskmap),
     next_(0)
     {
         
@@ -31,7 +31,7 @@ namespace Thread
         {
             char buf[name_.size() + 32];
             snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
-            std::unique_ptr<Thread> worker = std::make_unique<Thread>(threadFds[i].get_second(), cb, std::string(buf), taskmap_);
+            std::unique_ptr<Thread> worker = std::make_unique<Thread>(threadFds[i]->get_second(), taskmap_, cb, std::string(buf));
             loops_.push_back(worker->startLoop());
             threads_.push_back(std::move(worker));
         }

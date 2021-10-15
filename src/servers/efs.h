@@ -14,25 +14,25 @@ class Efs
     void registerWorkerTasks(Event::TaskMap taskmap)
     {
         assert(!started_);
-        worker_taskmap_ = taskmap;
+        workerTaskMap_ = taskmap;
     }
 
     void registerWorkerTasks(short task, Event::TaskCb cb)
     {
         assert(!started_);
-        worker_taskmap_.emplace(task, cb);
+        workerTaskMap_.emplace(task, cb);
     }
 
     void registerMasterTasks(Event::TaskMap taskmap)
     {
         assert(!started_);
-        master_taskmap_ = taskmap;
+        masterTaskMap_ = taskmap;
     }
 
     void registerMasterTasks(short task, Event::TaskCb cb)
     {
         assert(!started_);
-        master_taskmap_.emplace(task, cb);
+        masterTaskMap_.emplace(task, cb);
     }
 
 private:
@@ -40,8 +40,8 @@ private:
     Event::EventsLoop main_loop_;
     Server::Server server_;
 
-    Event::TaskMap master_taskmap_;
-    Event::TaskMap worker_taskmap_;
+    Event::TaskMap masterTaskMap_;
+    Event::TaskMap workerTaskMap_;
     std::set<uint16_t> portSet_;
     std::map<std::string, uint16_t> termMap_;
     std::multimap<uint16_t, uint16_t> routeMap_;
