@@ -32,7 +32,6 @@ namespace Socket
 //only support noblocking
     class Socket
     {
-
     public:
         explicit Socket(SockType type = SockType::udp);
         ~Socket();

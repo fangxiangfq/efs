@@ -8,21 +8,24 @@ namespace Event
     class EventsLoop;
 
     using EventCallback = std::function<void()>;
-    class Event :public std::enable_shared_from_this<Event> 
+
+    enum class EvType
+    {
+        udp,
+        tcplink,
+        tcp,
+        local
+    };
+
+    class Event //:public std::enable_shared_from_this<Event> 
     {
     public:
-    
-        enum class EvType
-        {
-            udp,
-            tcplink,
-            tcpmsg,
-            local
-        };
-
-        Event(EventsLoop* loop, int fd);
+        Event(EventsLoop* loop, int fd, EvType type = EvType::local, uint16_t port = 0);
         ~Event();
         int fd() const { return fd_; }
+        int port() const { return port_; }
+        EvType type() const { return type_; }
+        void read() const { readCallback_(); }
         int events() const { return events_; }
         void enableRead() { events_ |= kReadEvent; update(); }
         void disableRead() { events_ &= ~kReadEvent; update(); }
@@ -39,16 +42,16 @@ namespace Event
         EventsLoop* loop_;
         const int fd_;
         int events_;
-
         EventCallback readCallback_;
         EventCallback writeCallback_;
+        EvType type_; 
+        uint16_t port_;
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
 
     };
 
-    using EventPtr = std::shared_ptr<Event>;
 } // namespace Event
   
  

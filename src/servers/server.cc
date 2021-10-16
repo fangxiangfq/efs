@@ -20,7 +20,10 @@ namespace Server
         for(int i = 0; i < numThreads; ++i)
         {
             Socket::SocketPtr sockpair =  std::make_unique<Socket::SocketPair>();
+            AckEvPtr ackev = std::make_unique<Event::Event>(loop_, sockpair->get_first()); 
+            ackev->enableRead();
             threadFds_.push_back(std::move(sockpair));
+            ackEvs_.push_back(std::move(ackev));
         }
     }
 

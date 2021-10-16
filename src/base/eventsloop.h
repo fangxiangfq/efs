@@ -20,10 +20,10 @@ namespace Event
         ~EventsLoop();  
         void loop();
 
-        void updateEvent(EventPtr event);
-        void removeEvent(EventPtr event);
+        void updateEvent(const Event& event);
+        void removeEvent(const Event& event);
 
-        bool hasEvent(EventPtr event)
+        bool hasEvent(const Event& event)
         {
             if(poller_)
                 return poller_->hasEvent(event); 

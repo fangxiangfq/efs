@@ -12,16 +12,17 @@ namespace Event
         public:
         Epoller();
         ~Epoller(){};
-        void updateEvent(EventPtr event);
-        void removeEvent(EventPtr event);
-        bool hasEvent(EventPtr event){return events_.count(event->fd()) > 0;}
+        //no need to use shared pointer
+        void updateEvent(const Event& event);
+        void removeEvent(const Event& event);
+        bool hasEvent(const Event& event){return events_.count(event.fd()) > 0;}
         bool dispatch(int timeout);
 
     private:
         int epfd_;
         int nfds_;
         Evsptr evsptr_;
-        std::map<int, EventPtr> events_;
+        std::map<int, const Event&> events_;
     };
 }
 

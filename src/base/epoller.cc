@@ -20,37 +20,37 @@ namespace Event
         evsptr_ = std::make_unique<struct epoll_event[]>(nfds_);
     }
     
-    void Epoller::updateEvent(EventPtr event) 
+    void Epoller::updateEvent(const Event& event) 
     {
         struct epoll_event epev;
-        epev.data.fd = event->fd();
-        epev.events = event->events();
+        epev.data.fd = event.fd();
+        epev.events = event.events();
         int op = EPOLL_CTL_MOD;
         if(!hasEvent(event))
         {
             op = EPOLL_CTL_ADD;
-            events_.emplace(event->fd(), event);
+            events_.emplace(event.fd(), event);
         }
             
-        if (::epoll_ctl(epfd_, op, event->fd(), &epev) < 0)
+        if (::epoll_ctl(epfd_, op, event.fd(), &epev) < 0)
         {
             //todo log
         }
     }
     
-    void Epoller::removeEvent(EventPtr event) 
+    void Epoller::removeEvent(const Event& event) 
     {
         struct epoll_event epev;
-        epev.data.fd = event->fd();
-        epev.events = event->events();
+        epev.data.fd = event.fd();
+        epev.events = event.events();
         int op = EPOLL_CTL_DEL;
         if(!hasEvent(event))
         {
            return;
         }
 
-        events_.erase(event->fd());    
-        if (::epoll_ctl(epfd_, op, event->fd(), &epev) < 0)
+        events_.erase(event.fd());    
+        if (::epoll_ctl(epfd_, op, event.fd(), &epev) < 0)
         {
             //todo log
         }
@@ -75,16 +75,14 @@ namespace Event
 	    {
             event_ = evsptr_[i].events;
             int fd = evsptr_[i].data.fd;
-            EventPtr ev = events_[fd];
-            if(ev)
+            if(events_.count(fd) <= 0)
+                continue;
+            const Event& ev = events_.at(fd);
+            if(event_ & EPOLLIN)
             {
-                if(event_ & EPOLLIN)
-                {
-
-                }
-
-                //do something
+                ev.read();
             }
+            //do something
         }
 
         return true;

@@ -17,7 +17,7 @@ namespace Event
         bool    listening_{false};
     };
 
-    using ChansMap = std::map<uint16_t, std::unique_ptr<Chan>>;
+    using ChansMap = std::map<int, std::unique_ptr<Chan>>;
 }
         
         
