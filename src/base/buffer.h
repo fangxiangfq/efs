@@ -1,6 +1,9 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <assert.h>
+#include <sys/socket.h>
+#include <string.h>
 
 namespace Buffer
 {
@@ -89,7 +92,7 @@ namespace Buffer
         {
             if (writableBytes() < len)
             {
-            makeSpace(len);
+                makeSpace(len);
             }
             assert(writableBytes() >= len);
         }
@@ -106,21 +109,31 @@ namespace Buffer
             append(static_cast<const char*>(data), len);
         }
 
+        ssize_t recv(int fd, int* savedErrno, size_t len);
+        ssize_t send(int fd, int* savedErrno, size_t len);
+        ssize_t send(int fd, int* savedErrno);
         //only support basic type without type cast
         template <typename T>
         T read() 
         { 
-            assert(readableBytes() >= sizeof T);
+            assert(readableBytes() >= sizeof(T));
             T ret;
-            ::memcpy(&be64, peek(), sizeof T);
-            retrieve(sizeof T);
+            ::memcpy(&ret, peek(), sizeof(T));
+            retrieve(sizeof(T));
             return ret;
         }
 
+        //only support basic type without type cast
         template <typename T>
         void write(const T& x) 
         { 
-            append(&x, sizeof T)
+            append(&x, sizeof(T));
+        }
+
+        template <typename T>
+        void prewrite(const T& x) 
+        { 
+            append(&x, sizeof(T));
         }
 
     private:

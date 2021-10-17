@@ -4,8 +4,10 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <string>
 #include "server.h"   
-    
+#include "buffer.h"
+
 class Efs
 {
 public:
@@ -15,7 +17,9 @@ public:
         udpforwardack
     };
 
-    Efs(){};
+    Efs() 
+    :main_loop_(-1, masterTaskMap_), server_(&main_loop_, std::string("efs"), workerTaskMap_){}
+
     virtual ~Efs()=default;
     virtual void start(){};
 
@@ -26,12 +30,13 @@ public:
 
 protected:
     virtual void dispatch(const Event::Event& ev);
-    virtual void taskPost();
-    virtual void taskExec();
+    virtual void taskPost(Buffer::Buffer& buf);
+    virtual void taskExec(){};
     
-    virtual void onConnect(){};//tcplink
-    virtual void onConnect(){};//tcpmsg
-    virtual void onUdpMessage(const int& fd, const uint16_t& port); 
+    virtual void onTcpLink(const Event::Event& ev){};
+    virtual void onTcpMessage(Event::Event& ev){};
+    virtual void onUdpMessage(Event::Event& ev); 
+    virtual void onLocalMessage(const Event::Event& ev);
 private:
     bool started_;
     Event::EventsLoop main_loop_;

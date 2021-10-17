@@ -28,8 +28,16 @@ namespace Server
         void setThreadInitCallback(const Thread::ThreadInitCallback& cb) { threadInitCallback_ = cb; }
         std::shared_ptr<Thread::ThreadPool> threadPool() { return threadPool_; }
         void start();
-        void CreateChan();
-        void DistoryChan();
+        void CreateChan(){};
+        void DistoryChan(){};
+
+        int getNextWorkerFd()
+        {
+            int idx = threadPool_->getNextLoopIndex();
+            if(idx < 0 || static_cast<size_t>(idx) > threadFds_.size())
+                return -1;
+            return threadFds_[idx]->get_first();
+        } 
 
     protected:
         Event::EventsLoop* loop_;

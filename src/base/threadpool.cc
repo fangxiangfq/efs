@@ -72,6 +72,21 @@ namespace Thread
         }
         return loop;
     }
+    
+    int ThreadPool::getNextLoopIndex() 
+    {
+        int idx = -1;
+        if(!loops_.empty())
+        {
+            idx = static_cast<int>(next_);
+            ++next_;
+            if (next_ >= loops_.size())
+            {
+                next_ = 0;
+            }
+        }
+        return idx;
+    }
 
     std::vector<Event::EventsLoop*> ThreadPool::getAllLoops()
     {

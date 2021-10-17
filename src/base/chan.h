@@ -8,7 +8,7 @@ namespace Event
     class Chan
     {
     public:
-        Chan(EventsLoop* loop, uint16_t port, Socket::SockType type = Socket::SockType::udp, bool reuseport = true);
+        Chan(EventsLoop* loop, uint16_t port, Socket::SockType type = Socket::SockType::udp);
         ~Chan();
     private:
         Socket::Socket sock_;

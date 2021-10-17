@@ -2,7 +2,9 @@
 
 #include <functional>
 #include <memory>
+#include <assert.h>
 #include "sockets.h"
+
 namespace Event
 {
     class EventsLoop;
@@ -21,7 +23,7 @@ namespace Event
     {
     public:
         Event(EventsLoop* loop, int fd, EvType type = EvType::local, uint16_t port = 0);
-        ~Event();
+        ~Event()=default;
         int fd() const { return fd_; }
         int port() const { return port_; }
         EvType type() const { return type_; }
@@ -36,7 +38,10 @@ namespace Event
         bool isReading() const { return events_ & kReadEvent; }
         void setRead(const EventCallback& cb) {readCallback_ = cb; }
         void setWrite(const EventCallback& cb) {writeCallback_ = cb; }
-        EventsLoop* ownerLoop() { return loop_; }
+        bool isNoneEvent() const { return events_ == kNoneEvent; }
+        EventsLoop* ownerLoop() const { return loop_; }
+        void remove();
+   
     private:
         void update();
         EventsLoop* loop_;

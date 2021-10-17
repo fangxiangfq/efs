@@ -1,6 +1,6 @@
 #include "event.h"
 #include "eventsloop.h"
-
+#include <assert.h>
 namespace Event
 {
     const int Event::kNoneEvent = 0;
@@ -12,9 +12,16 @@ namespace Event
         
     }
     
+    void Event::remove()
+    {
+        assert(isNoneEvent());
+        loop_->removeEvent(*this);
+    }
+
     void Event::update() 
     {
         //loop_->updateEvent(shared_from_this());
         loop_->updateEvent(*this);
     }
+
 }

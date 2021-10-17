@@ -1,14 +1,13 @@
 #include "chan.h"
+#include "inetaddress.h"
 
 namespace Event
 {
-    Chan::chan(EventsLoop* loop, uint16_t port, Socket::SockType type, bool reuseport) 
-    :loop_(loop),
-    sock_(type),
-    ev_(sock_.fd())
+    Chan::Chan(EventsLoop* loop, uint16_t port, Socket::SockType type) 
+    :sock_(type),
+    ev_(loop, sock_.fd())
     {
         sock_.setReuseAddr(true);
-        sock_.setReusePort(reuseport);
         sock_.bindAddress(Net::InetAddress(port));
 
         if(Socket::SockType::tcplink == type)
@@ -18,7 +17,7 @@ namespace Event
         }      
     }
 
-    Chan::~chan() 
+    Chan::~Chan() 
     {
         ev_.disableAll();
         ev_.remove();

@@ -20,6 +20,8 @@ namespace Thread
 
         Event::EventsLoop* getLoopForHash(size_t hashCode);
 
+        int getNextLoopIndex();
+
         std::vector<Event::EventsLoop*> getAllLoops();
 
         bool started() const
