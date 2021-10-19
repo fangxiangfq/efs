@@ -114,13 +114,13 @@ namespace Buffer
         ssize_t send(int fd, int* savedErrno);
         //only support basic type without type cast
         template <typename T>
-        T read() 
+        void read(T& x) 
         { 
             assert(readableBytes() >= sizeof(T));
             T ret;
             ::memcpy(&ret, peek(), sizeof(T));
             retrieve(sizeof(T));
-            return ret;
+            x = ret;
         }
 
         //only support basic type without type cast
@@ -130,6 +130,7 @@ namespace Buffer
             append(&x, sizeof(T));
         }
 
+        //only support basic type without type cast
         template <typename T>
         void prewrite(const T& x) 
         { 

@@ -1,28 +1,15 @@
 #include "efs.h"
 
-
-void Efs::registerWorkerTasks(const Event::TaskMap& taskmap) 
+void Efs::registerTasks(Event::TaskMap& taskmap) 
 {
     assert(!started_);
-    workerTaskMap_ = taskmap;
+    taskMap_.swap(taskmap);
 }
 
-void Efs::registerWorkerTasks(const short& task, const Event::TaskCb& cb) 
+void Efs::registerTasks(const short& task, const Event::TaskCb& cb) 
 {
     assert(!started_);
-    workerTaskMap_.emplace(task, cb);
-}
-
-void Efs::registerMasterTasks(const Event::TaskMap& taskmap) 
-{
-    assert(!started_);
-    masterTaskMap_ = taskmap;
-}
-
-void Efs::registerMasterTasks(const short& task, const Event::TaskCb& cb) 
-{
-    assert(!started_);
-    masterTaskMap_.emplace(task, cb);
+    taskMap_.emplace(task, cb);
 }
 
 void Efs::dispatch(Event::Event& ev) 
@@ -61,23 +48,121 @@ void Efs::onUdpMessage(Event::Event& ev)
 {
     Buffer::Buffer buf;
     int fd = ev.fd();
+    size_t len = 0;
     uint16_t dstnum = static_cast<uint16_t>(routeMap_.count(fd));
     uint16_t task = static_cast<uint16_t>(Task::udpforward);
     buf.write(task);
+    len += sizeof(task);
     buf.write(fd);
+    len += sizeof(fd);
     buf.write(dstnum);
+    len += sizeof(dstnum);
+
     for(auto it = routeMap_.lower_bound(fd); it != routeMap_.upper_bound(fd); ++it)
     {
         buf.write(it->second);
+        len += sizeof(int);
     }
-    //todo disable fd
+
+    setTaskHeader(buf, len);
     ev.disableAll();
     taskPost(buf);
 }
 
 void Efs::onLocalMessage(Event::Event& ev) 
 {
-     const Event::Event& ev
+    Buffer::Buffer buf;
+    int fd = ev.fd();
+    int savedErrno = 0;
+
+    while(true)
+    {
+        ssize_t len = buf.recv(fd, &savedErrno, 4);
+
+        if(0 > len)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                break;
+            }  
+        } 
+        else if(0 == len)
+        {
+            //todo log
+            ev.disableAll();
+            break;
+        }
+
+        uint32_t leftLen = 0;
+        buf.read(leftLen);
+        len = buf.recv(fd, &savedErrno, static_cast<size_t>(leftLen));
+
+        if(0 > len)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                break;
+            }  
+        } 
+        else if(0 == len || len > static_cast<ssize_t>(leftLen))
+        {
+            //todo log
+            ev.disableAll();
+            break;
+        }
+
+    }
+
+    uint16_t task = 0;
+
+    if(true == checkTaskHeader(buf, task))
+    {
+        Event::TaskCb cb = taskMap_[task];
+        if(cb)
+        {
+            // cb(buf);
+        }
+    }
+    else
+    {
+        //todo log
+    }
 }
 
+void Efs::setTaskHeader(Buffer::Buffer& buf, size_t len)
+{
+    assert(buf.prependableBytes() >= 8);
+    uint32_t len32 = static_cast<uint32_t>(len);
+    buf.prewrite('k');
+    buf.prewrite('s');
+    buf.prewrite('a');
+    buf.prewrite('t');
+    len32 += 4;
+    buf.prewrite(len32);
+}
 
+bool Efs::checkTaskHeader(Buffer::Buffer& buf, uint16_t& task)
+{
+    assert(buf.readableBytes() < 8);
+    char ch;
+    buf.read(ch);
+    if(ch != 't')
+        return false;
+    buf.read(ch);
+    if(ch != 'a')
+        return false;
+    buf.read(ch);
+    if(ch != 's')
+        return false;
+    buf.read(ch);
+    if(ch != 'k')
+        return false;
+    buf.read(task);
+    return true;
+}
+
+Efs::Efs() 
+:main_loop_(), server_(&main_loop_, std::string("efs"))
+{
+    server_.setEvCallback(std::bind(&Efs::dispatch, this, _1));
+}

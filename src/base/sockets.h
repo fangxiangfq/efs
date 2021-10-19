@@ -13,8 +13,8 @@ namespace Socket
         ~SocketPair();
         SocketPair(const SocketPair&)=delete;
         SocketPair operator=(const SocketPair&)=delete;
-        int get_first(){return first_;}
-        int get_second(){return second_;}
+        int first(){return first_;}
+        int second(){return second_;}
     private:
         int first_;
         int second_;     

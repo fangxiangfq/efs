@@ -16,7 +16,7 @@ namespace Event
     class EventsLoop
     {
     public:    
-        EventsLoop(int taskfd, const TaskMap& taskmap);
+        EventsLoop();
         ~EventsLoop();  
         void loop();
 
@@ -47,10 +47,6 @@ namespace Event
         std::atomic<bool> quit_;
         const std::thread::id tid_;
 
-        bool master_loop_{true};
-        const int taskfd_;
-        const TaskMap& taskmap_;
-        std::unique_ptr<Event> taskev_;
         std::unique_ptr<Epoller> poller_;
     };
 } // namespace Event

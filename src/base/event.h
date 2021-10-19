@@ -8,8 +8,9 @@
 namespace Event
 {
     class EventsLoop;
-
+    class Event;
     using EventCallback = std::function<void()>;
+    using EventCallbackEx = std::function<void(Event&)>;
 
     enum class EvType
     {
@@ -23,6 +24,12 @@ namespace Event
     {
     public:
         Event(EventsLoop* loop, int fd, EvType type = EvType::local, uint16_t port = 0);
+        Event(int fd, EvType type = EvType::local, uint16_t port = 0);
+        void setLoop(EventsLoop* loop)
+        { 
+            if(!loop_)
+                loop_= loop;
+        }
         ~Event()=default;
         int fd() const { return fd_; }
         int port() const { return port_; }

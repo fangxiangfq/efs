@@ -3,12 +3,11 @@
 
 namespace Thread
 {
-    ThreadPool::ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg, const Event::TaskMap& taskmap)
+    ThreadPool::ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg)
     :baseLoop_(baseLoop),
     name_(nameArg),
     started_(false),
-    numThreads_(0),
-    taskmap_(taskmap),
+    numThreads_(1),
     next_(0)
     {
         
@@ -19,7 +18,7 @@ namespace Thread
         // Don't delete loop, it's stack variable
     }
     
-    void ThreadPool::start(const Socket::SocketPairArr &threadFds, const ThreadInitCallback& cb) 
+    void ThreadPool::start(const Event::LocalsArr& localsArr, const ThreadInitCallback& cb) 
     {
         assert(!started_);
         assert(threadFds.size() >= static_cast<size_t>(numThreads_));
@@ -31,7 +30,7 @@ namespace Thread
         {
             char buf[name_.size() + 32];
             snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
-            std::unique_ptr<Thread> worker = std::make_unique<Thread>(threadFds[i]->get_second(), taskmap_, cb, std::string(buf));
+            std::unique_ptr<Thread> worker = std::make_unique<Thread>(localsArr[i]->getMasterEv(), cb, std::string(buf));
             loops_.push_back(worker->startLoop());
             threads_.push_back(std::move(worker));
         }

@@ -4,7 +4,7 @@
 using namespace Event;
 namespace Thread
 {
-    Thread::Thread(const int& threadfd, const Event::TaskMap& taskmap, const ThreadInitCallback& cb,
+    Thread::Thread(Event::Event& workerEv, const ThreadInitCallback& cb,
                       const std::string& name) 
     :loop_(NULL),
     exiting_(false),
@@ -13,8 +13,7 @@ namespace Thread
     cond_(),
     callback_(cb),
     name_(name),
-    threadfd_(threadfd),
-    taskmap_(taskmap)
+    workerEv_(workerEv)
     {
         
     }
@@ -46,7 +45,7 @@ namespace Thread
     
     void Thread::threadFunc() 
     {
-        EventsLoop loop(threadfd_, taskmap_);
+        EventsLoop loop;
 
         if (callback_)
         {
@@ -56,6 +55,8 @@ namespace Thread
         {
             std::lock_guard<std::mutex> lock(mutex_);
             loop_ = &loop;
+            workerEv_.setLoop(loop_);
+            workerEv_.enableRead();
             cond_.notify_one();
         }
 

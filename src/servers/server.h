@@ -9,7 +9,6 @@
 //a base class sup http tcp udp etc
 namespace Server
 {
-
     class Server
     {
     public:
@@ -19,9 +18,10 @@ namespace Server
             kReusePort
         };
 
-        Server(Event::EventsLoop* loop, const std::string& nameArg, const Event::TaskMap& taskmap);
+        Server(Event::EventsLoop* loop, const std::string& nameArg);
         ~Server(){};
- 
+
+        void setEvCallback(const Event::EventCallbackEx& cb) { cb_ = cb; }
         void setThreadNum(int numThreads);
         const std::string& name() const { return name_; }
         Event::EventsLoop* getLoop() const { return loop_; }
@@ -34,9 +34,9 @@ namespace Server
         int getNextWorkerFd()
         {
             int idx = threadPool_->getNextLoopIndex();
-            if(idx < 0 || static_cast<size_t>(idx) > threadFds_.size())
+            if(idx < 0 || static_cast<size_t>(idx) > localArr_.size())
                 return -1;
-            return threadFds_[idx]->get_first();
+            return localArr_[idx]->getSockp().first();
         } 
 
     protected:
@@ -47,11 +47,8 @@ namespace Server
         Thread::ThreadInitCallback threadInitCallback_;
         std::atomic<bool> started_{false};
 
-        using AckEvPtr = std::unique_ptr<Event::Event>;
-        using AckEvArr = std::vector<AckEvPtr>;
-
-        Socket::SocketPairArr threadFds_;
-        AckEvArr              ackEvs_;
+        Event::EventCallbackEx cb_;
+        Event::LocalsArr      localArr_;
         Event::ChansMap       chansMap_;
     };  
 }

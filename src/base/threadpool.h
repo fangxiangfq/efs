@@ -4,6 +4,7 @@
 #include <vector>
 #include "thread.h"
 #include "eventsloop.h"
+#include "chan.h"
 
 namespace Thread
 {
@@ -11,10 +12,10 @@ namespace Thread
     class ThreadPool
     {
     public:
-        ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg, const Event::TaskMap& taskmap);
+        ThreadPool(Event::EventsLoop* baseLoop, const std::string& nameArg);
         ~ThreadPool();
         void setThreadNum(int numThreads) { numThreads_ = numThreads; }
-        void start(const Socket::SocketPairArr& threadFds, const ThreadInitCallback& cb = ThreadInitCallback());
+        void start(const Event::LocalsArr& localsArr, const ThreadInitCallback& cb = ThreadInitCallback());
 
         Event::EventsLoop* getNextLoop();
 
@@ -36,7 +37,6 @@ namespace Thread
         std::string name_;
         bool started_;
         int numThreads_;
-        const Event::TaskMap& taskmap_;
         
         size_t next_;
         std::vector<std::unique_ptr<Thread>> threads_;

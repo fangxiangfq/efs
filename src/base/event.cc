@@ -11,7 +11,13 @@ namespace Event
     {
         
     }
-    
+
+    Event::Event(int fd, EvType type, uint16_t port) 
+    :loop_(nullptr), fd_(fd), events_(0), readCallback_(nullptr), writeCallback_(nullptr), type_(type), port_(port)
+    {
+        
+    }
+
     void Event::remove()
     {
         assert(isNoneEvent());
@@ -21,7 +27,9 @@ namespace Event
     void Event::update() 
     {
         //loop_->updateEvent(shared_from_this());
-        loop_->updateEvent(*this);
+        if(loop_)
+            loop_->updateEvent(*this);
     }
+    
 
 }
