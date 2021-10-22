@@ -1,5 +1,11 @@
 #include "efs.h"
 
+Efs::Efs() 
+:main_loop_(), server_(&main_loop_, std::string("efs"))
+{
+    server_.setEvCallback(std::bind(&Efs::dispatch, this, _1));
+}
+
 void Efs::registerTasks(Event::TaskMap& taskmap) 
 {
     assert(!started_);
@@ -42,6 +48,13 @@ void Efs::taskPost(Buffer::Buffer& buf)
     {
         //todo log
     }
+}
+
+void Efs::onTcpLink(Event::Event& ev) 
+{
+    // int fd = ev.fd();
+    // struct sockaddr_in addr;
+    // int connfd = ::accept(fd, &addr, sizeof addr);
 }
 
 void Efs::onUdpMessage(Event::Event& ev) 
@@ -161,8 +174,3 @@ bool Efs::checkTaskHeader(Buffer::Buffer& buf, uint16_t& task)
     return true;
 }
 
-Efs::Efs() 
-:main_loop_(), server_(&main_loop_, std::string("efs"))
-{
-    server_.setEvCallback(std::bind(&Efs::dispatch, this, _1));
-}

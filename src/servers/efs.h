@@ -35,7 +35,7 @@ protected:
     virtual void taskPost(Buffer::Buffer& buf);
     virtual void taskExec(){};
     
-    virtual void onTcpLink(Event::Event& ev){};
+    virtual void onTcpLink(Event::Event& ev);
     virtual void onTcpMessage(Event::Event& ev){};
     virtual void onUdpMessage(Event::Event& ev); 
     virtual void onLocalMessage(Event::Event& ev);

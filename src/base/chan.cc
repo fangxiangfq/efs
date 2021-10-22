@@ -17,6 +17,13 @@ namespace Event
         }      
     }
 
+    Chan::Chan(int connfd, EventsLoop* loop, Socket::SockType type) 
+    :sock_(connfd, type),
+    ev_(loop, sock_.fd())
+    {
+        sock_.setReuseAddr(true);  
+    }
+
     Chan::~Chan() 
     {
         ev_.disableAll();

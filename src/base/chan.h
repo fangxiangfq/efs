@@ -10,6 +10,7 @@ namespace Event
     {
     public:
         Chan(EventsLoop* loop, uint16_t port, Socket::SockType type = Socket::SockType::udp);
+        Chan(int fd, EventsLoop* loop, Socket::SockType type = Socket::SockType::tcp);
         ~Chan();
     private:
         Socket::Socket sock_;

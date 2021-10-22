@@ -40,10 +40,17 @@ namespace Socket
         }
     }
     
+    Socket::Socket(int fd, SockType type) 
+    :sockfd_(fd), type_(type)
+    {
+        
+    }
+
     Socket::~Socket()
     {
         ::close(sockfd_);
     }
+    
     
     void Socket::bindAddress(const InetAddress& localaddr) 
     {
@@ -90,4 +97,28 @@ namespace Socket
         ::setsockopt(sockfd_, SOL_SOCKET, SO_KEEPALIVE,
                &optval, static_cast<socklen_t>(sizeof optval));
     }
+
+    // struct sockaddr_in6 getLocalAddr(int sockfd)
+    // {
+    //     struct sockaddr_in6 localaddr;
+    //     memset(&localaddr, sizeof localaddr);
+    //     socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
+    //     if (::getsockname(sockfd, sockaddr_cast(&localaddr), &addrlen) < 0)
+    //     {
+            
+    //     }
+    //     return localaddr;
+    // }
+
+    // struct sockaddr_in6 getPeerAddr(int sockfd)
+    // {
+    //     struct sockaddr_in6 peeraddr;
+    //     memset(&peeraddr, sizeof peeraddr);
+    //     socklen_t addrlen = static_cast<socklen_t>(sizeof peeraddr);
+    //     if (::getpeername(sockfd, sockaddr_cast(&peeraddr), &addrlen) < 0)
+    //     {
+            
+    //     }
+    //     return peeraddr;
+    // }
 }

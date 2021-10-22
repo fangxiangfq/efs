@@ -34,6 +34,7 @@ namespace Socket
     {
     public:
         explicit Socket(SockType type = SockType::udp);
+        explicit Socket(int fd, SockType type = SockType::udp);
         ~Socket();
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
@@ -47,5 +48,9 @@ namespace Socket
     private:
         int sockfd_;
         SockType type_;
-    };
+    }; 
+
+    // struct sockaddr_in6 getLocalAddr(int sockfd);
+    // struct sockaddr_in6 getPeerAddr(int sockfd);
+
 }// namespace socket
