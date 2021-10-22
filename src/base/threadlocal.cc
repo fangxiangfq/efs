@@ -2,64 +2,110 @@
 
 namespace ThreadLocal
 {
-    std::atomic<uint32_t> ThreadLocal::nextSlotId_;
     thread_local ThreadLocal::ThreadLocalData ThreadLocal::threadLocalData_;
-    std::set<Event::EventsLoop*> ThreadLocal::registeredThreads_;
-
-    ThreadLocalObjectSharedPtr ThreadLocal::get(uint32_t index) 
-    {
-        assert(threadLocalData_.find(index) != threadLocalData_.end());
-        return threadLocalData_.data_[index];
-    }
     
     void ThreadLocal::registerThread(Event::EventsLoop* loop, bool mainThread) 
     {
         if (mainThread) 
         {
             mainLoop_ = loop;
+            threadLocalData_.loop_ = loop;
         } 
         else 
         {
             assert(!registeredThreads_.count(loop));
             registeredThreads_.insert(loop);
+            loop->post([loop]
+                {
+                    threadLocalData_.loop_ = loop;
+                }
+            );
         }
     }
     
-    void ThreadLocal::runOnAllThreads(PostCb cb) 
+    void ThreadLocal::runOnAllThreads(Event::PostCb cb) 
     {
         assert(std::this_thread::get_id() == mainThreadId_);
-        // for (Event::EventsLoop* loop : registeredThreads_) 
-        // {
-        //     //loop->post(cb);
-        // }
+        assert(!shutdown_);
+        for (Event::EventsLoop* loop : registeredThreads_) 
+        {
+            loop->post(cb);
+        }
 
         cb();
     }
-    
-    void ThreadLocal::set(uint32_t index, InitializeCb cb) 
-    {
-        assert(std::this_thread::get_id() == mainThreadId_);
-        // for (Event::EventsLoop* loop : registeredThreads_)
-        // {
-            
-        // }
 
-        threadLocalData_.data_[index] = cb(mainLoop_);
-    }
-    
-    void ThreadLocal::shutdownThread() 
-    {
-        for (auto& entry : threadLocalData_.data_) 
-        {
-            entry.second->shutdown();
-        }
-    }
-    
-    void ThreadLocal::reset() 
+    void ThreadLocal::runOnAllThreads(Event::PostCb cb, Event::PostCb all_threads_complete_cb) 
     {
         assert(std::this_thread::get_id() == mainThreadId_);
-        nextSlotId_ = 0;
+        assert(!shutdown_);
+
+        std::shared_ptr<Event::PostCb> cb_guard(new Event::PostCb(cb),
+            [this, all_threads_complete_cb](Event::PostCb* pcb)
+            {
+                mainLoop_->post(all_threads_complete_cb);
+                delete pcb; 
+            });
+
+        for (Event::EventsLoop* loop : registeredThreads_) 
+        {
+            loop->post([cb_guard]{(*cb_guard)();});
+        }
+
+        cb();
+    }
+
+    void ThreadLocal::setThreadLocal(uint32_t index, ThreadLocalObjectSharedPtr object)
+    {
+        if (threadLocalData_.data_.size() <= index) 
+        {
+            threadLocalData_.data_.resize(index + 1);
+        }
+
+        threadLocalData_.data_[index] = object;
+    }
+
+    void ThreadLocal::shutdownGlobalThreading()
+    {
+        assert(std::this_thread::get_id() == main_thread_id_);
+        assert(!shutdown_);
+        shutdown_ = true;
+    }
+
+    void ThreadLocal::shutdownThread()
+    {
+        assert(shutdown_);
+        for (auto it = threadLocalData_.data_.rbegin(); it != threadLocalData_.data_.rend(); ++it) 
+        {
+            it->reset();
+        }
         threadLocalData_.data_.clear();
-        registeredThreads_.clear();
+    }
+
+    void ThreadLocal::SlotImpl::set(InitializeCb cb)
+    {
+        assert(std::this_thread::get_id() == parent_.mainThreadId_);
+        assert(!parent_.shutdown_);
+
+        for (Event::EventsLoop* loop : parent_.registeredThreads_) {
+            const uint32_t index = index_;
+            loop->post([index, cb, loop]() -> void { setThreadLocal(index, cb(loop)); });
+        }
+
+        // Handle main thread.
+        setThreadLocal(index_, cb(parent_.mainLoop_));
+    }
+    void ThreadLocal::removeSlot(SlotImpl& slot)
+    {
+        assert(std::this_thread::get_id() == main_thread_id_);
+        assert(!shutdown_);
+        const uint64_t index = slot.index_;
+        slots_[index] = nullptr;
+        runOnAllThreads([index]() -> void {
+            if (index < threadLocalData_.data_.size()) 
+            {
+                threadLocalData_.data_[index] = nullptr;
+            }
+        });
     }
 }

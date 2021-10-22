@@ -1,5 +1,4 @@
 #include "sockets.h"
-#include "inetaddress.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/uio.h>  // readv

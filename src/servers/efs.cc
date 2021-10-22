@@ -71,11 +71,11 @@ void Efs::onUdpMessage(Event::Event& ev)
     buf.write(dstnum);
     len += sizeof(dstnum);
 
-    for(auto it = routeMap_.lower_bound(fd); it != routeMap_.upper_bound(fd); ++it)
-    {
-        buf.write(it->second);
-        len += sizeof(int);
-    }
+    // for(auto it = routeMap_.lower_bound(fd); it != routeMap_.upper_bound(fd); ++it)
+    // {
+    //     buf.write(it->second);
+    //     len += sizeof(int);
+    // }
 
     setTaskHeader(buf, len);
     ev.disableAll();

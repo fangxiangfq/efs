@@ -2,8 +2,8 @@
 #include <sys/socket.h>
 #include <vector>
 #include <memory>
+#include "inetaddress.h"
 
-namespace Net{class InetAddress;}
 namespace Socket
 {
     class SocketPair
@@ -49,7 +49,17 @@ namespace Socket
         int sockfd_;
         SockType type_;
     }; 
-
+    //todo op == reload
+    class Sockinfo
+    {
+    public:
+        Sockinfo(const uint16_t& local_port, const int &fd, const uint16_t& peer_port, const std::string& ip)
+        :PerrAddr_(ip, peer_port), local_port_(local_port), sockfd_(fd) {}
+        //todo op == reload
+        Net::InetAddress PerrAddr_;
+        uint16_t    local_port_;
+        int         sockfd_;
+    };
     // struct sockaddr_in6 getLocalAddr(int sockfd);
     // struct sockaddr_in6 getPeerAddr(int sockfd);
 

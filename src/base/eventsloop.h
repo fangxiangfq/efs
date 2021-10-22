@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <thread>
 #include <vector>
+#include <mutex>
 #include <map>
 #include "epoller.h"
 #include "event.h"
@@ -13,6 +14,8 @@ namespace Event
 {
     using TaskCb = std::function<void(int fd, size_t len)>;
     using TaskMap = std::map<short, TaskCb>;
+    
+    using PostCb = std::function<void()>;
     class EventsLoop
     {
     public:    
@@ -32,6 +35,8 @@ namespace Event
 
         void quit() { quit_ = true; }
 
+        bool inLoopThread() {return tid_ == std::this_thread::get_id();}
+
         void assertSelfThread()
         {
             if(tid_ != std::this_thread::get_id())
@@ -41,13 +46,23 @@ namespace Event
             }
         }
         
+        void wakeup();
+        void post(const PostCb& cb);
     private:
-        void handleTask();
+        void handlePostCbs();
+        void handleWakeUp();
+        
         bool looping_;
         std::atomic<bool> quit_;
         const std::thread::id tid_;
-
         std::unique_ptr<Epoller> poller_;
+
+        int wakeupFd_;
+        std::unique_ptr<Event> wakeupEv_;
+
+        bool doingPostCb_; 
+        std::mutex mutex_;
+        std::vector<PostCb> postCbs_;
     };
 } // namespace Event
 
