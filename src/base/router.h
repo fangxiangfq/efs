@@ -25,8 +25,6 @@ namespace Route
         void add(int& src, Socket::Sockinfo& dst);
         void del(int& src, Socket::Sockinfo& dst);
         void del(int& src);
-        RouterPtr createRouter();
-        void update();
     };
 }
 

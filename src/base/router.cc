@@ -45,21 +45,35 @@ namespace Route
         });
     }
 
-    void RouteManger::del(int& src)
+    void RouteManger::del(int& fd)
     {
-        tls_->runOnAllThreads([src, dst]{
-            for(auto it = r.dstMap_.lower_bound(src); it != r.dstMap_.upper_bound(src);)
+        tls_->runOnAllThreads([fd, dst]{
+            for(auto it = r.dstMap_.lower_bound(fd); it != r.dstMap_.upper_bound(fd);)
             {
-                int dst = it->second();
+                int dst = it->second.sockfd_;
                 for(auto it2 = r.srcMap_.lower_bound(dst); it2 != r.srcMap_.upper_bound(dst);)
                 {
-                    if(src == it->second)
+                    if(fd == it->second)
                         r.srcMap_.erase(it2++);
                     else
                         it2++;
                 }
 
                 r.dstMap_.erase(it++);
+            }
+
+            for(auto it = r.srcMap_.lower_bound(fd); it != r.src Map_.upper_bound(fd);)
+            {
+                int src = it->second;
+                for(auto it2 = r.srcMap_.lower_bound(src); it2 != r.srcMap_.upper_bound(src);)
+                {
+                    if(fd == it->second.sockfd_)
+                        r.dstMap_.erase(it2++);
+                    else
+                        it2++;
+                }
+
+                r.srcMap_.erase(it++);
             }
         });
     }
