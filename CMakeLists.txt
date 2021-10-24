@@ -33,7 +33,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/servers)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/base BASE)
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/servers SERV)
+aux_source_directory(${PROJECT_SOURCE_DIR}/src/efs SERV)
 add_library(efs_base ${BASE})
 add_executable(efs ${SERV})
 target_link_libraries(efs efs_base)

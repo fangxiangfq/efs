@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 #include <assert.h>
+
 namespace ThreadLocal
 {   
     class ThreadLocalObject
@@ -20,6 +21,7 @@ namespace ThreadLocal
     using ThreadLocalObjectSharedPtr = std::shared_ptr<ThreadLocalObject>;
     using InitializeCb = std::function<ThreadLocalObjectSharedPtr(Event::EventsLoop* loop)>;
     using UpdateCb = std::function<void(ThreadLocalObjectSharedPtr)>;
+    
     class Slot 
     {
     public:

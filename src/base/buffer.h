@@ -54,6 +54,13 @@ namespace Buffer
                 retrieveAll();
             }
         }
+
+        void retrieveUntil(const char* end)
+        {
+            assert(peek() <= end);
+            assert(end <= beginWrite());
+            retrieve(end - peek());
+        }
         
         std::string retrieveAsString(size_t len)
         {
@@ -72,6 +79,9 @@ namespace Buffer
         }
 
         char* beginWrite()
+        { return begin() + writerIndex_; }
+
+        const char* readEnd() const
         { return begin() + writerIndex_; }
 
         void hasWritten(size_t len)
@@ -95,6 +105,11 @@ namespace Buffer
                 makeSpace(len);
             }
             assert(writableBytes() >= len);
+        }
+
+        void append(const std::string& str)
+        {
+            append(str.c_str(), str.length());
         }
 
         void append(const char* /*restrict*/ data, size_t len)

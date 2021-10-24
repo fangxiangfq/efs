@@ -49,13 +49,21 @@ namespace Socket
         int sockfd_;
         SockType type_;
     }; 
-    //todo op == reload
+
     class Sockinfo
     {
     public:
         Sockinfo(const uint16_t& local_port, const int &fd, const uint16_t& peer_port, const std::string& ip)
         :PerrAddr_(ip, peer_port), local_port_(local_port), sockfd_(fd) {}
-        //todo op == reload
+        //op == reload
+        bool operator==(const Sockinfo& rhs)
+        {
+            return (sockfd_ == rhs.sockfd_) &&
+                   (local_port_ == rhs.local_port_) &&
+                   (PerrAddr_.port() == rhs.PerrAddr_.port()) &&
+                   (PerrAddr_.ip() == rhs.PerrAddr_.ip());
+        }
+
         Net::InetAddress PerrAddr_;
         uint16_t    local_port_;
         int         sockfd_;

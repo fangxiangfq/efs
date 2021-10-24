@@ -62,20 +62,11 @@ void Efs::onUdpMessage(Event::Event& ev)
     Buffer::Buffer buf;
     int fd = ev.fd();
     size_t len = 0;
-    uint16_t dstnum = static_cast<uint16_t>(routeMap_.count(fd));
     uint16_t task = static_cast<uint16_t>(Task::udpforward);
     buf.write(task);
     len += sizeof(task);
     buf.write(fd);
     len += sizeof(fd);
-    buf.write(dstnum);
-    len += sizeof(dstnum);
-
-    // for(auto it = routeMap_.lower_bound(fd); it != routeMap_.upper_bound(fd); ++it)
-    // {
-    //     buf.write(it->second);
-    //     len += sizeof(int);
-    // }
 
     setTaskHeader(buf, len);
     ev.disableAll();
