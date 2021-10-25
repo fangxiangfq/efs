@@ -68,7 +68,8 @@ namespace Socket
         uint16_t    local_port_;
         int         sockfd_;
     };
-    // struct sockaddr_in6 getLocalAddr(int sockfd);
-    // struct sockaddr_in6 getPeerAddr(int sockfd);
+
+    struct sockaddr_in getLocalAddr(int sockfd);
+    struct sockaddr_in getPeerAddr(int sockfd);
 
 }// namespace socket

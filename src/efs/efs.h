@@ -23,7 +23,6 @@ public:
 
     Efs();
 
-
     virtual ~Efs()=default;
     virtual void start(){};
 
@@ -32,12 +31,13 @@ public:
 
 protected:
     virtual void dispatch(Event::Event& ev);
+    virtual void onRequest(Buffer::Buffer& buf); 
     virtual void taskPost(Buffer::Buffer& buf);
     virtual void taskExec(){};
     
     virtual void onTcpLink(Event::Event& ev);
-    virtual void onTcpMessage(Event::Event& ev){};
-    virtual void onUdpMessage(Event::Event& ev); 
+    virtual void onTcpMessage(Event::Event& ev);
+    virtual void onUdpMessage(Event::Event& ev);
     virtual void onLocalMessage(Event::Event& ev);
     virtual void setTaskHeader(Buffer::Buffer& buf, size_t len);
     virtual bool checkTaskHeader(Buffer::Buffer& buf, uint16_t& task);

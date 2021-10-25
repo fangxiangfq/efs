@@ -3,7 +3,7 @@
 
 namespace Event
 {
-    Chan::Chan(EventsLoop* loop, uint16_t port, Socket::SockType type) 
+    Chan::Chan(uint16_t port, EventsLoop* loop, Socket::SockType type) 
     :sock_(type),
     ev_(loop, sock_.fd())
     {
@@ -14,7 +14,9 @@ namespace Event
         {
             sock_.listen();
             listening_ = true;
-        }      
+        } 
+
+        ev_.enableRead();    
     }
 
     Chan::Chan(int connfd, EventsLoop* loop, Socket::SockType type) 
@@ -22,6 +24,7 @@ namespace Event
     ev_(loop, sock_.fd())
     {
         sock_.setReuseAddr(true);  
+        ev_.enableRead(); 
     }
 
     Chan::~Chan() 

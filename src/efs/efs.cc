@@ -1,4 +1,5 @@
 #include "efs.h"
+#include "inetaddress.h"
 
 Efs::Efs() 
 :main_loop_(), server_(&main_loop_, std::string("efs"))
@@ -34,6 +35,12 @@ void Efs::dispatch(Event::Event& ev)
     case Event::EvType::local:
         onLocalMessage(ev);
         break;
+    case Event::EvType::tcplink:
+        onTcpLink(ev);
+        break;
+    case Event::EvType::tcp:
+        onTcpMessage(ev);
+        break;
     default:
         break;
     }
@@ -50,11 +57,31 @@ void Efs::taskPost(Buffer::Buffer& buf)
     }
 }
 
+void Efs::onRequest(Buffer::Buffer& buf) 
+{
+    Http::HttpContext context;
+    if(!context.parseRequest(buf))
+    {
+        
+    }
+}
+
 void Efs::onTcpLink(Event::Event& ev) 
 {
-    // int fd = ev.fd();
-    // struct sockaddr_in addr;
-    // int connfd = ::accept(fd, &addr, sizeof addr);
+    int fd = ev.fd();
+    struct sockaddr_in addr;
+    socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
+    int connfd = ::accept(fd, Net::sockaddr_cast(&addr), &addrlen);
+    server_.createChan(fd);
+}
+
+void Efs::onTcpMessage(Event::Event& ev) 
+{
+    int savedErrno = 0;
+    Buffer::Buffer buf(256);
+    int fd = ev.fd();
+    ssize_t len = buf.recv(fd, &savedErrno, 256);
+    onRequest(buf);
 }
 
 void Efs::onUdpMessage(Event::Event& ev) 

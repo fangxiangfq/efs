@@ -97,27 +97,27 @@ namespace Socket
                &optval, static_cast<socklen_t>(sizeof optval));
     }
 
-    // struct sockaddr_in6 getLocalAddr(int sockfd)
-    // {
-    //     struct sockaddr_in6 localaddr;
-    //     memset(&localaddr, sizeof localaddr);
-    //     socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
-    //     if (::getsockname(sockfd, sockaddr_cast(&localaddr), &addrlen) < 0)
-    //     {
+    struct sockaddr_in getLocalAddr(int sockfd)
+    {
+        struct sockaddr_in localaddr;
+        memset(&localaddr, 0, sizeof localaddr);
+        socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
+        if (::getsockname(sockfd, sockaddr_cast(&localaddr), &addrlen) < 0)
+        {
             
-    //     }
-    //     return localaddr;
-    // }
+        }
+        return localaddr;
+    }
 
-    // struct sockaddr_in6 getPeerAddr(int sockfd)
-    // {
-    //     struct sockaddr_in6 peeraddr;
-    //     memset(&peeraddr, sizeof peeraddr);
-    //     socklen_t addrlen = static_cast<socklen_t>(sizeof peeraddr);
-    //     if (::getpeername(sockfd, sockaddr_cast(&peeraddr), &addrlen) < 0)
-    //     {
+    struct sockaddr_in getPeerAddr(int sockfd)
+    {
+        struct sockaddr_in peeraddr;
+        memset(&peeraddr, 0, sizeof peeraddr);
+        socklen_t addrlen = static_cast<socklen_t>(sizeof peeraddr);
+        if (::getpeername(sockfd, sockaddr_cast(&peeraddr), &addrlen) < 0)
+        {
             
-    //     }
-    //     return peeraddr;
-    // }
+        }
+        return peeraddr;
+    }
 }

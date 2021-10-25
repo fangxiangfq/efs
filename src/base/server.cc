@@ -39,5 +39,15 @@ namespace Server
             threadPool_->start(localArr_, threadInitCallback_);
         }
     }
+    
+    void Server::createChan(int fd)
+    {
+        std::unique_ptr<Event::Chan> chan(new Event::Chan(fd, loop_));
+    }
+
+    void Server::distoryChan()
+    {
+        
+    }
 
 }

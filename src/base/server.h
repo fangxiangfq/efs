@@ -28,8 +28,8 @@ namespace Server
         void setThreadInitCallback(const Thread::ThreadInitCallback& cb) { threadInitCallback_ = cb; }
         std::shared_ptr<Thread::ThreadPool> threadPool() { return threadPool_; }
         void start();
-        void CreateChan(){};
-        void DistoryChan(){};
+        void createChan();
+        void distoryChan();
 
         int getNextWorkerFd()
         {
