@@ -8,7 +8,7 @@ namespace Route
 {
     struct Router : public ThreadLocal::ThreadLocalObject
     {
-        std::multimap<int, Socket::Sockinfo> dstMap_;
+        std::multimap<int, Socket::SockInfo> dstMap_;
         std::multimap<int, int> srcMap_;
     };
 
@@ -20,10 +20,10 @@ namespace Route
         RouteManger(ThreadLocal::ThreadLocal& threadLocal);
         ~RouteManger()=default;
         Router& router();
-        void add(int& src, Socket::Sockinfo& dst);
-        void del(int& src, Socket::Sockinfo& dst);
+        void add(int& src, Socket::SockInfo& dst);
+        void del(int& src, Socket::SockInfo& dst);
         void del(int& src);
     };
-    using RouteMap = std::multimap<int, Socket::Sockinfo>;
+    using RouteMap = std::multimap<int, Socket::SockInfo>;
 }
 

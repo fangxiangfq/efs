@@ -29,7 +29,31 @@ namespace Socket
         tcp,
         tcplink,
     };
+
 //only support noblocking
+    class SockInfo
+    {
+    public:
+        SockInfo(const int &fd, const uint16_t& local_port, const uint16_t& peerPort, const std::string& peerIp)
+        :peerAddr_(peerIp, peerPort), localAddr_(local_port), sockfd_(fd) {}
+        SockInfo(const int &fd)
+        :peerAddr_(), localAddr_(), sockfd_(fd) {}
+        //op == reload
+        bool operator==(const SockInfo& rhs)
+        {
+            return (sockfd_ == rhs.sockfd_) &&
+                   (localAddr_.port() == rhs.localAddr_.port()) &&
+                   (localAddr_.ip() == rhs.localAddr_.ip());
+                   (peerAddr_.port() == rhs.peerAddr_.port()) &&
+                   (peerAddr_.ip() == rhs.peerAddr_.ip());
+        }
+
+        Net::InetAddress peerAddr_;
+        Net::InetAddress localAddr_;
+        int sockfd_;
+    };
+
+    using SocketInfoPtr = std::shared_ptr<SocketPair>;
     class Socket
     {
     public:
@@ -38,36 +62,20 @@ namespace Socket
         ~Socket();
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
-        int fd() const { return sockfd_; }
+        int  fd() const { return sock_.sockfd_; }
         void bindAddress(const Net::InetAddress& localaddr);
         void listen();
-        int accept(Net::InetAddress* peeraddr);
+        int  accept(Net::InetAddress* peeraddr);
         void setReuseAddr(bool on);
         void setKeepAlive(bool on);
-
+        void setPeerAddr(Net::InetAddress&& peerAddr)
+        {
+            sock_.peerAddr_ = peerAddr;
+        }
     private:
-        int sockfd_;
+        SockInfo sock_;
         SockType type_;
     }; 
-
-    class Sockinfo
-    {
-    public:
-        Sockinfo(const uint16_t& local_port, const int &fd, const uint16_t& peer_port, const std::string& ip)
-        :PerrAddr_(ip, peer_port), local_port_(local_port), sockfd_(fd) {}
-        //op == reload
-        bool operator==(const Sockinfo& rhs)
-        {
-            return (sockfd_ == rhs.sockfd_) &&
-                   (local_port_ == rhs.local_port_) &&
-                   (PerrAddr_.port() == rhs.PerrAddr_.port()) &&
-                   (PerrAddr_.ip() == rhs.PerrAddr_.ip());
-        }
-
-        Net::InetAddress PerrAddr_;
-        uint16_t    local_port_;
-        int         sockfd_;
-    };
 
     struct sockaddr_in getLocalAddr(int sockfd);
     struct sockaddr_in getPeerAddr(int sockfd);

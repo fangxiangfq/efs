@@ -15,7 +15,7 @@ namespace Route
         return tls_->getTyped<Router>();
     }
 
-    void RouteManger::add(int& src, Socket::Sockinfo& dst)
+    void RouteManger::add(int& src, Socket::SockInfo& dst)
     {
         tls_->runOnAllThreads([this, src, dst]{
             tls_->getTyped<Router>().dstMap_.emplace(src, dst);
@@ -23,7 +23,7 @@ namespace Route
         });
     }
 
-    void RouteManger::del(int& src, Socket::Sockinfo& dst)
+    void RouteManger::del(int& src, Socket::SockInfo& dst)
     {
         tls_->runOnAllThreads([this, src, dst]{
             Router& r = tls_->getTyped<Router>();
