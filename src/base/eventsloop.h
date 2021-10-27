@@ -57,8 +57,8 @@ namespace Event
         const std::thread::id tid_;
         std::unique_ptr<Epoller> poller_;
 
-        int wakeupFd_;
         std::unique_ptr<Event> wakeupEv_;
+        int wakeupFd_;
 
         bool doingPostCb_; 
         std::mutex mutex_;

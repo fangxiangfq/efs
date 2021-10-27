@@ -15,7 +15,7 @@ namespace Event
         //no need to use shared pointer
         void updateEvent(const Event& event);
         void removeEvent(const Event& event);
-        bool hasEvent(const Event& event){return events_.count(event.fd().fd) > 0;}
+        bool hasEvent(const Event& event){return events_.count(event.fd()) > 0;}
         bool dispatch(int timeout);
 
     private:

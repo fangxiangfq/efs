@@ -4,6 +4,7 @@
 #include <memory>
 #include <assert.h>
 #include "sockets.h"
+#include "http.h"
 
 namespace Event
 {
@@ -47,9 +48,9 @@ namespace Event
         virtual ~Event()=default;
         void setLoop(EventsLoop* loop){ if(!loop_){loop_= loop;} }
 
-        BaseFd fd() const { return fd_; }
+        int fd() const { return fd_.fd; }
         int events() const { return events_; }
-        EvType evtype() const { return type_; }
+        EvType type() const { return type_; }
         void enableRead() { events_ |= kReadEvent; update(); }
         void disableRead() { events_ &= ~kReadEvent; update(); }
         void enableWrite() { events_ |= kWriteEvent; update(); }
@@ -58,17 +59,18 @@ namespace Event
         bool isWriting() const { return events_ & kWriteEvent; }
         bool isReading() const { return events_ & kReadEvent; }
         bool isNoneEvent() const { return events_ == kNoneEvent; }
+        void setReadCb(const EventCallback& readCb) { readCb_ = readCb; }
         EventsLoop* ownerLoop() const { return loop_; }
 
-        virtual void read() = 0;
-        virtual void write() = 0;
+        virtual void read() const = 0;
+        virtual void write() const = 0;
     protected:
         void update();
         EventsLoop* loop_;
         BaseFd fd_;
         int events_{0};
         EvType type_; 
-
+        EventCallback readCb_;
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
@@ -78,25 +80,25 @@ namespace Event
     {
     public:
         TaskEvent(EventsLoop* loop = NULL);
-        void read() override;
-        void write() override;
+        void read() const override;
+        void write() const override;
     };
 
     class TimerEvent : public Event
     {
     public:
-        TimerEvent(long time, EventsLoop* loop = NULL, bool looptimer = false);//ms
+        TimerEvent(long time, EventsLoop* loop = NULL, bool looptimer = false);//us
         void set(long time, bool loop);
-        void read() override;
-        void write() override;
+        void read() const override;
+        void write() const override;
     };
 
     class UdpEvent : public Event
     {
     public:
         UdpEvent(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop = NULL);
-        void read() override;
-        void write() override;
+        void read() const override;
+        void write() const override;
     private:
         Socket::Socket socket_;
     };
@@ -104,25 +106,35 @@ namespace Event
     class TcpListenEvent : public Event
     {
     public:
-        TcpListenEvent();
-        void read() override;
-        void write() override;
+        TcpListenEvent(const uint16_t& localPort, bool isHttp = true, EventsLoop* loop = NULL);
+        void read() const override;
+        void write() const override {}//do nothing
+        bool isHttpListening() const { return isHttpListening_; }
+    private:
+        bool isHttpListening_;
+        Socket::Socket socket_;
     };
 
     class TcpEvent : public Event
     {
     public:
-        TcpEvent();
-        void read() override;
-        void write() override;
+        TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
+        void read() const override;
+        void write() const override;
+    private:
+        Socket::Socket socket_;
     };
 
     class HttpEvent : public Event
     {
     public:
-        HttpEvent();
-        void read() override;
-        void write() override;
+        HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
+        void read() const override;
+        void write() const override;
+        Http::HttpContext& context() {return httpctx_; } 
+    private:
+        Socket::Socket socket_;
+        Http::HttpContext httpctx_;
     };
 } // namespace Event
   

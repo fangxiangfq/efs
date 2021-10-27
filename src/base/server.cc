@@ -1,34 +1,23 @@
 #include "server.h"
+#include "rest.h"
 #include <assert.h>
 
 namespace Server
 {
     Server::Server(Event::EventsLoop* loop,
-                  const std::string& nameArg) 
+                  const std::string& nameArg, uint16_t threadNum) 
     :loop_(loop),
     name_(nameArg),
-    threadPool_(new Thread::ThreadPool(loop, name_))
+    workerFactory_(new Thread::WorkerFactory(loop, name_, threadNum))
     {
-
     }
-
-    void Server::setThreadNum(int numThreads)
+    
+    void Server::init() 
     {
-        assert(!started_);
-        assert(0 <= numThreads);
-        threadPool_->setThreadNum(numThreads);
-
-        for(int i = 0; i < numThreads; ++i)
-        {
-            Event::LocalPtr local = std::make_unique<Event::Local>();
-            Event::Event& masterEv = local->getMasterEv();
-            Event::Event& workerEv = local->getMasterEv();
-            masterEv.setLoop(loop_); 
-            masterEv.setRead(std::bind(cb_, masterEv));
-            workerEv.setRead(std::bind(cb_, workerEv));
-            masterEv.enableRead();
-            localArr_.push_back(std::move(local));
-        }
+        Rest::JsonBuilder::registerMsg(Rest::Code::success, "success");
+        Rest::JsonBuilder::registerMsg(Rest::Code::bad_request, "bad request");
+        Rest::JsonBuilder::registerMsg(Rest::Code::server_error, "server error");
+        Rest::JsonBuilder::registerMsg(Rest::Code::server_full, "server full");
     }
 
     void Server::start()
@@ -36,18 +25,8 @@ namespace Server
         if (!started_)
         {
             started_ = true;
-            threadPool_->start(localArr_, threadInitCallback_);
         }
-    }
-    
-    void Server::createChan(int fd)
-    {
-        std::unique_ptr<Event::Chan> chan(new Event::Chan(fd, loop_));
-    }
 
-    void Server::distoryChan()
-    {
-        
+        workerFactory_->start();
     }
-
 }

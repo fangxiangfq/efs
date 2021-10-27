@@ -27,7 +27,7 @@ namespace Socket
     { 
         udp,
         tcp,
-        tcplink,
+        tcplisten,
     };
 
 //only support noblocking
@@ -36,6 +36,8 @@ namespace Socket
     public:
         SockInfo(const int &fd, const uint16_t& local_port, const uint16_t& peerPort, const std::string& peerIp)
         :peerAddr_(peerIp, peerPort), localAddr_(local_port), sockfd_(fd) {}
+        SockInfo(const int &fd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr)
+        :peerAddr_(peerAddr), localAddr_(localAddr), sockfd_(fd) {}
         SockInfo(const int &fd)
         :peerAddr_(), localAddr_(), sockfd_(fd) {}
         //op == reload
@@ -58,7 +60,7 @@ namespace Socket
     {
     public:
         explicit Socket(SockType type = SockType::udp);
-        explicit Socket(int fd, SockType type = SockType::udp);
+        explicit Socket(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, SockType type = SockType::tcp);
         ~Socket();
         Socket(const Socket&)=delete;
         Socket operator=(const Socket&)=delete;
@@ -68,10 +70,8 @@ namespace Socket
         int  accept(Net::InetAddress* peeraddr);
         void setReuseAddr(bool on);
         void setKeepAlive(bool on);
-        void setPeerAddr(Net::InetAddress&& peerAddr)
-        {
-            sock_.peerAddr_ = peerAddr;
-        }
+        void setPeerAddr(Net::InetAddress&& peerAddr){ sock_.peerAddr_ = peerAddr;}
+
     private:
         SockInfo sock_;
         SockType type_;

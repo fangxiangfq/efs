@@ -73,15 +73,17 @@ namespace Rest
     
     JsonBuilder::JsonBuilder(const Code& code) 
     {
-        root_["code"] = static_cast<int>(code);
-        root_["msg"] = msgmap_[code];
+        uint16_t rspCode = static_cast<uint16_t>(code);
+        root_["code"] = rspCode;
+        root_["msg"] = msgmap_[rspCode];
     }
     
     //todo change to templates
     JsonBuilder::JsonBuilder(const Code& code, const std::string& key, const uint16_t& value) 
     {
-        root_["code"] = static_cast<int>(code);
-        root_["msg"] = msgmap_[code];
+        uint16_t rspCode = static_cast<uint16_t>(code);
+        root_["code"] = rspCode;
+        root_["msg"] = msgmap_[rspCode];
 
         Json::Value data;
         data[key] = value;
@@ -91,13 +93,24 @@ namespace Rest
     
     JsonBuilder::JsonBuilder(const Code& code, const std::string& key, const std::string& str) 
     {
-        root_["code"] = static_cast<int>(code);
-        root_["msg"] = msgmap_[code];
-
+        uint16_t rspCode = static_cast<uint16_t>(code);
+        root_["code"] = rspCode;
+        root_["msg"] = msgmap_[rspCode];
         Json::Value data;
         data[key] = str;
 
         root_["data"] = data;
+    }
+    
+    void JsonBuilder::registerMsg(Code&& code, const std::string& str) 
+    {
+        uint16_t rspCode = static_cast<uint16_t>(code);
+        registerMsg(rspCode, str);
+    }
+    
+    void JsonBuilder::registerMsg(const uint16_t& code, const std::string& str) 
+    {
+        msgmap_.emplace(code, str);
     }
     
     std::string JsonBuilder::toString() 

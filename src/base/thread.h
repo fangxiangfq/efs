@@ -31,6 +31,5 @@ namespace Thread
         ThreadInitCallback callback_;
         const std::string name_;
         Event::Event& workerEv_;
-
     };
 }

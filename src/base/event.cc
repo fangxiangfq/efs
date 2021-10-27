@@ -28,12 +28,12 @@ namespace Event
         }
     }
 
-    void TaskEvent::read()
+    void TaskEvent::read() const
     {
 
     }
 
-    void TaskEvent::write()
+    void TaskEvent::write() const
     {
 
     }
@@ -69,12 +69,12 @@ namespace Event
         }
     }
 
-    void TimerEvent::read()
+    void TimerEvent::read() const
     {
 
     }
 
-    void TimerEvent::write()
+    void TimerEvent::write() const
     {
 
     }
@@ -84,5 +84,71 @@ namespace Event
     {
         socket_.bindAddress(Net::InetAddress(localPort));
         socket_.setPeerAddr(std::move(Net::InetAddress(peerIp, peerPort)));
+        fd_.udpSockFd = socket_.fd();
+        if(fd_.udpSockFd < 0)
+        {
+            //todo log
+            abort();
+        }
+    }
+
+    void UdpEvent::read() const
+    {
+         
+    }
+
+    void UdpEvent::write() const
+    {
+
+    }
+
+    TcpListenEvent::TcpListenEvent(const uint16_t& localPort, bool isHttp, EventsLoop* loop)
+    :Event(loop, EvType::tcplisten), socket_(Socket::SockType::tcplisten)
+    {
+        socket_.bindAddress(Net::InetAddress(localPort));
+        socket_.listen();
+        fd_.tcpListenFd = socket_.fd();
+        if(fd_.tcpListenFd < 0)
+        {
+            //todo log
+            abort();
+        }
+    }
+
+    void TcpListenEvent::read() const
+    {
+         
+    }
+
+    TcpEvent::TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
+    :Event(loop, EvType::tcp), socket_(connfd, localAddr, peerAddr)
+    {
+
+    }
+
+    void TcpEvent::read() const
+    {
+         
+    }
+
+    void TcpEvent::write() const
+    {
+         
+    }
+
+    HttpEvent::HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
+    :Event(loop, EvType::tcp), socket_(connfd, localAddr, peerAddr)
+    {
+
+    }
+
+    void HttpEvent::read() const
+    {
+         
+    }
+
+    void HttpEvent::write() const
+    {
+         
     }
 }

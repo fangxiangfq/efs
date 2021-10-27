@@ -30,7 +30,7 @@ namespace Socket
     {
         if(SockType::udp == type)
             sock_.sockfd_ = ::socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_UDP);
-        else if(SockType::tcp == type)
+        else if(SockType::tcplisten == type)
             sock_.sockfd_ = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
 
         if(0 > sock_.sockfd_)
@@ -39,8 +39,8 @@ namespace Socket
         }
     }
     
-    Socket::Socket(int fd, SockType type) 
-    :sock_(fd), type_(type)
+    Socket::Socket(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, SockType type) 
+    :sock_(connfd, localAddr, peerAddr), type_(type)
     {
         
     }

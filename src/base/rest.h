@@ -1,4 +1,4 @@
-#include "json.h"
+#include "json/json.h"
 #include <string>
 #include <map>
 #include <memory>
@@ -13,7 +13,7 @@ namespace Rest
         server_full
     };
 
-    using MsgMap = std::map<Code, std::string>;
+    using MsgMap = std::map<uint16_t, std::string>;
 
     class JsonParser
     {
@@ -35,6 +35,8 @@ namespace Rest
         JsonBuilder(const Code& code, const std::string& key, const uint16_t& value);
         JsonBuilder(const Code& code, const std::string& key, const std::string& str);
 
+        static void registerMsg(Code&& code, const std::string& str);
+        static void registerMsg(const uint16_t& code, const std::string& str);
         std::string toString();
         static MsgMap msgmap_;
     private:

@@ -9,15 +9,15 @@ namespace Event
     quit_(false),
     tid_(std::this_thread::get_id()), 
     poller_(new Epoller()),
-    wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)),
-    wakeupEv_(new Event(this, wakeupFd_))
+    wakeupEv_(new TaskEvent(this))
     {
+        wakeupFd_ = wakeupEv_->fd();
         if(wakeupFd_ < 0)
         {
             //todo log
             abort();
         }
-        wakeupEv_->setRead(std::bind(&EventsLoop::handleWakeUp, this));
+        wakeupEv_->setReadCb(std::bind(&EventsLoop::handleWakeUp, this));
         wakeupEv_->enableRead();
     }
     
@@ -38,8 +38,6 @@ namespace Event
                 //todo log
                 abort();
             }
-
-            handlePostCbs();
         }
         //other thing
     }
