@@ -5,15 +5,21 @@
 
 namespace Event
 {
-    using taskEvPtr = std::shared_ptr<TaskEvent>;
+    using TaskEvPtr = std::shared_ptr<TaskEvent>;
+    using TcpListenEvPtr = std::unique_ptr<TcpListenEvent>;
     class EventManager
     {
     public:
-        static taskEvPtr createTaskEv()
+        static TaskEvPtr createTaskEvPtr()
         {
             return std::make_shared<TaskEvent>();
+        }
+
+        static TaskEvent&& createTaskEv()
+        {
+            return std::move(TaskEvent());
         }
     };
 }
 
-using EventManager = Event::EventManager;
+using EvManager = Event::EventManager;

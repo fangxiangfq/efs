@@ -102,7 +102,7 @@ namespace Event
 
     }
 
-    TcpListenEvent::TcpListenEvent(const uint16_t& localPort, bool isHttp, EventsLoop* loop)
+    TcpListenEvent::TcpListenEvent(const uint16_t& localPort, EventsLoop* loop, bool isHttp)
     :Event(loop, EvType::tcplisten), socket_(Socket::SockType::tcplisten)
     {
         socket_.bindAddress(Net::InetAddress(localPort));
@@ -117,7 +117,7 @@ namespace Event
 
     void TcpListenEvent::read() const
     {
-         
+        
     }
 
     TcpEvent::TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)

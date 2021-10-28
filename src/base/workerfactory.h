@@ -43,8 +43,8 @@ namespace Thread
         uint16_t workerIdx;
 
         std::map<uint16_t, TaskCb> taskMap_;
-        std::vector<Event::taskEvPtr> workertaskEv_;
-        std::vector<Event::taskEvPtr> mastertaskEv_;
+        std::vector<Event::TaskEvPtr> workertaskEv_;
+        std::vector<Event::TaskEvPtr> mastertaskEv_;
         std::vector<std::unique_ptr<Thread>> threads_;
         std::vector<Event::EventsLoop*> loops_;
     };

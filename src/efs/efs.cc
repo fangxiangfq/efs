@@ -32,10 +32,10 @@ void Efs::dispatch(Event::Event& ev)
     case Event::EvType::udp:
         onUdpMessage(ev);
         break;
-    case Event::EvType::local:
+    case Event::EvType::task:
         onLocalMessage(ev);
         break;
-    case Event::EvType::tcplink:
+    case Event::EvType::tcplisten:
         onTcpLink(ev);
         break;
     case Event::EvType::tcp:
@@ -48,40 +48,40 @@ void Efs::dispatch(Event::Event& ev)
 
 void Efs::taskPost(Buffer::Buffer& buf) 
 {
-    int savedErrno = 0;
-    int workerFd = server_.getNextWorkerFd();
-    assert(workerFd > 0);
-    if(0 > buf.send(workerFd, &savedErrno))
-    {
-        //todo log
-    }
+    // int savedErrno = 0;
+    // int workerFd = server_.getNextWorkerFd();
+    // assert(workerFd > 0);
+    // if(0 > buf.send(workerFd, &savedErrno))
+    // {
+    //     //todo log
+    // }
 }
 
 void Efs::onRequest(Buffer::Buffer& buf) 
 {
-    Http::HttpContext context;
-    if(!context.parseRequest(buf))
-    {
+    // Http::HttpContext context;
+    // if(!context.parseRequest(buf))
+    // {
         
-    }
+    // }
 }
 
 void Efs::onTcpLink(Event::Event& ev) 
 {
-    int fd = ev.fd();
-    struct sockaddr_in addr;
-    socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
-    int connfd = ::accept(fd, Net::sockaddr_cast(&addr), &addrlen);
-    server_.createChan(fd);
+    // int fd = ev.fd();
+    // struct sockaddr_in addr;
+    // socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
+    // int connfd = ::accept(fd, Net::sockaddr_cast(&addr), &addrlen);
+    // server_.createChan(fd);
 }
 
 void Efs::onTcpMessage(Event::Event& ev) 
 {
-    int savedErrno = 0;
-    Buffer::Buffer buf(256);
-    int fd = ev.fd();
-    ssize_t len = buf.recv(fd, &savedErrno, 256);
-    onRequest(buf);
+    // int savedErrno = 0;
+    // Buffer::Buffer buf(256);
+    // int fd = ev.fd();
+    // ssize_t len = buf.recv(fd, &savedErrno, 256);
+    // onRequest(buf);
 }
 
 void Efs::onUdpMessage(Event::Event& ev) 

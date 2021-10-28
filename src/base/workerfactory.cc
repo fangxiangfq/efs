@@ -26,8 +26,8 @@ namespace Thread
         assert(!started_);
         for (int i = 0; i < threadNum_; ++i)
         {
-            workertaskEv_.push_back(std::move(EventManager::createTaskEv()));
-            mastertaskEv_.push_back(std::move(EventManager::createTaskEv()));
+            workertaskEv_.push_back(std::move(EvManager::createTaskEvPtr()));
+            mastertaskEv_.push_back(std::move(EvManager::createTaskEvPtr()));
         }
     }
     

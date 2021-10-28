@@ -106,7 +106,7 @@ namespace Event
     class TcpListenEvent : public Event
     {
     public:
-        TcpListenEvent(const uint16_t& localPort, bool isHttp = true, EventsLoop* loop = NULL);
+        TcpListenEvent(const uint16_t& localPort, EventsLoop* loop = NULL, bool isHttp = true);
         void read() const override;
         void write() const override {}//do nothing
         bool isHttpListening() const { return isHttpListening_; }

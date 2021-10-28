@@ -41,13 +41,18 @@ namespace Socket
         SockInfo(const int &fd)
         :peerAddr_(), localAddr_(), sockfd_(fd) {}
         //op == reload
-        bool operator==(const SockInfo& rhs)
+        bool operator==(const SockInfo& rhs) const
         {
             return (sockfd_ == rhs.sockfd_) &&
                    (localAddr_.port() == rhs.localAddr_.port()) &&
                    (localAddr_.ip() == rhs.localAddr_.ip());
                    (peerAddr_.port() == rhs.peerAddr_.port()) &&
                    (peerAddr_.ip() == rhs.peerAddr_.ip());
+        }
+
+        bool operator<(const SockInfo& rhs) const
+        {
+            return (sockfd_ < rhs.sockfd_);
         }
 
         Net::InetAddress peerAddr_;

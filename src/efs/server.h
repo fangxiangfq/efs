@@ -1,9 +1,10 @@
 #pragma once
+
 #include <atomic>
 #include <string>
 #include <vector>
+#include <set>
 #include "eventsloop.h"
-#include "chan.h"
 #include "workerfactory.h"
 
 namespace Server
@@ -24,12 +25,18 @@ namespace Server
         const std::string& name() const { return name_; }
         Event::EventsLoop* getLoop() const { return loop_; }
         void start();
-
-    protected:
+        
+    private:
         Event::EventsLoop* loop_;
         const std::string name_;
-        std::unique_ptr<Thread::WorkerFactory> workerFactory_{};
+        std::unique_ptr<Thread::WorkerFactory> workerFactory_;
         std::atomic<bool> started_{false};
         Event::EventCallbackEx cb_;
+    //io
+        std::set<uint16_t> portManager_;
+        Event::TcpListenEvPtr restEv_{};   
+    private:
+        void portManagerInit(uint16_t min_media_port = 10000, uint16_t max_media_port = 30000);
+        void restInit(uint16_t port = 8000);
     };  
 }

@@ -1,29 +1,35 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include "threadlocal.h"
 #include "sockets.h"
 
 namespace Route
 {
-    struct Router : public ThreadLocal::ThreadLocalObject
+    using RouteSet = std::set<Socket::SockInfo>;
+    using RouteMap = std::map<Socket::SockInfo, RouteSet>;
+    class Router : public ThreadLocal::ThreadLocalObject
     {
-        std::multimap<int, Socket::SockInfo> dstMap_;
-        std::multimap<int, int> srcMap_;
+    private:
+        RouteMap dstMap_;
+    public:
+        void add(const Socket::SockInfo& src, const Socket::SockInfo& dst);
+        void del(const Socket::SockInfo& src, const Socket::SockInfo& dst);
+        void del(const Socket::SockInfo& src);
     };
 
-    class RouteManger
+    class RouteManager
     {
     private:
         ThreadLocal::SlotPtr tls_;
     public:
-        RouteManger(ThreadLocal::ThreadLocal& threadLocal);
-        ~RouteManger()=default;
+        RouteManager(ThreadLocal::ThreadLocal& threadLocal);
+        ~RouteManager()=default;
         Router& router();
-        void add(int& src, Socket::SockInfo& dst);
-        void del(int& src, Socket::SockInfo& dst);
-        void del(int& src);
+        void add(const Socket::SockInfo& src, const Socket::SockInfo& dst);
+        void del(const Socket::SockInfo& src, const Socket::SockInfo& dst);
+        void del(const Socket::SockInfo& src);
     };
-    using RouteMap = std::multimap<int, Socket::SockInfo>;
 }
 
