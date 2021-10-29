@@ -74,9 +74,9 @@ namespace Socket
         void listen();
         int  accept(Net::InetAddress* peeraddr);
         void setReuseAddr(bool on);
+        void setReusePort(bool on);
         void setKeepAlive(bool on);
         void setPeerAddr(Net::InetAddress&& peerAddr){ sock_.peerAddr_ = peerAddr;}
-
     private:
         SockInfo sock_;
         SockType type_;

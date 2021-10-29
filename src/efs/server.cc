@@ -2,6 +2,10 @@
 #include "rest.h"
 #include <assert.h>
 
+using std::placeholders::_1;
+using std::placeholders::_2;
+using std::placeholders::_3;
+
 namespace Server
 {
     Server::Server(Event::EventsLoop* loop,
@@ -16,7 +20,7 @@ namespace Server
     void Server::init() 
     {
         portManagerInit();
-        restInit();
+        restManagerInit();
     }
 
     void Server::start()
@@ -39,7 +43,7 @@ namespace Server
         }
     }
     
-    void Server::restInit(uint16_t port) 
+    void Server::restManagerInit(uint16_t port) 
     {
         Rest::JsonBuilder::registerMsg(Rest::Code::success, "success");
         Rest::JsonBuilder::registerMsg(Rest::Code::bad_request, "bad request");
@@ -52,7 +56,14 @@ namespace Server
             return;
         }
 
-        if(!restEv_)
-            restEv_ = std::make_unique<Event::TcpListenEvent>(port, loop_);
+        if(!evManager_.restManager_)
+            evManager_.restManager_ = std::make_unique<Event::TcpListenEvent>(std::bind(&Server::onHttpConnect, this, _1), port, loop_);
+    }
+    
+    void Server::onHttpConnect(Event::HttpEvPtr httpev) 
+    {
+        httpev->setLoop(loop_);
+        httpev->enableRead();
+        evManager_.httpConManager_.emplace(std::move(httpev));
     }
 }

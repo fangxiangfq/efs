@@ -42,14 +42,14 @@ namespace Event
         //other thing
     }
 
-    void EventsLoop::updateEvent(const Event& event) 
+    void EventsLoop::updateEvent(Event& event) 
     {
         assert(event->loop() == this);
         assertSelfThread();
         poller_->updateEvent(event);
     }
     
-    void EventsLoop::removeEvent(const Event& event) 
+    void EventsLoop::removeEvent(Event& event) 
     {
         assert(event->loop() == this);
         assertSelfThread();

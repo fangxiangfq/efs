@@ -43,4 +43,16 @@ namespace Buffer
     {
         return send(fd, savedErrno, readableBytes());
     }
+
+    ssize_t Buffer::sendto(const Socket::SockInfo& info, int* savedErrno)
+    {
+        const ssize_t n = ::sendto(info.sockfd_, peek(), readableBytes(), 0, info.peerAddr_.getSockAddr(), sizeof(struct sockaddr));
+
+        if (n < 0)
+        {
+            *savedErrno = errno;
+        }
+
+        return 0;
+    }
 }

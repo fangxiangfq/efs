@@ -20,7 +20,7 @@ namespace Event
         evsptr_ = std::make_unique<struct epoll_event[]>(nfds_);
     }
     
-    void Epoller::updateEvent(const Event& event) 
+    void Epoller::updateEvent(Event& event) 
     {
         struct epoll_event epev;
         epev.data.fd = event.fd();
@@ -38,7 +38,7 @@ namespace Event
         }
     }
     
-    void Epoller::removeEvent(const Event& event) 
+    void Epoller::removeEvent(Event& event) 
     {
         struct epoll_event epev;
         epev.data.fd = event.fd();
@@ -77,7 +77,7 @@ namespace Event
             int fd = evsptr_[i].data.fd;
             if(events_.count(fd) <= 0)
                 continue;
-            const Event& ev = events_.at(fd);
+            Event& ev = events_.at(fd);
             if(event_ & EPOLLIN)
             {
                 ev.read();

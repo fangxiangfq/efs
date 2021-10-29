@@ -1,9 +1,11 @@
 #include "event.h"
-#include "eventsloop.h"
 #include <assert.h>
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
 #include <sys/time.h>
+#include "eventsloop.h"
+#include "evmanager.h"
+#include "sockets.h"
 
 namespace Event
 {
@@ -28,12 +30,12 @@ namespace Event
         }
     }
 
-    void TaskEvent::read() const
+    void TaskEvent::read()
     {
 
     }
 
-    void TaskEvent::write() const
+    void TaskEvent::write()
     {
 
     }
@@ -69,12 +71,12 @@ namespace Event
         }
     }
 
-    void TimerEvent::read() const
+    void TimerEvent::read()
     {
 
     }
 
-    void TimerEvent::write() const
+    void TimerEvent::write()
     {
 
     }
@@ -92,18 +94,18 @@ namespace Event
         }
     }
 
-    void UdpEvent::read() const
+    void UdpEvent::read()
     {
          
     }
 
-    void UdpEvent::write() const
+    void UdpEvent::write() 
     {
 
     }
 
-    TcpListenEvent::TcpListenEvent(const uint16_t& localPort, EventsLoop* loop, bool isHttp)
-    :Event(loop, EvType::tcplisten), socket_(Socket::SockType::tcplisten)
+    TcpListenEvent::TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp, EventsLoop* loop)
+    :Event(loop, EvType::tcplisten), conncb_(cb), isHttpListening_(isHttp), socket_(Socket::SockType::tcplisten)
     {
         socket_.bindAddress(Net::InetAddress(localPort));
         socket_.listen();
@@ -115,39 +117,83 @@ namespace Event
         }
     }
 
-    void TcpListenEvent::read() const
+    void TcpListenEvent::read()
     {
-        
+        struct sockaddr_in addr;
+        socklen_t addrlen = static_cast<socklen_t>(sizeof addr);
+        int connfd = ::accept(fd_.tcpListenFd, Net::sockaddr_cast(&addr), &addrlen);
+        Net::InetAddress localAddr(Socket::getLocalAddr(connfd));
+        Net::InetAddress peerAddr(addr);
+        HttpEvPtr httpev = EventManager::createHttpEvPtr(connfd, localAddr, peerAddr);
+        if(conncb_)
+            conncb_(httpev);
     }
 
     TcpEvent::TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
-    :Event(loop, EvType::tcp), socket_(connfd, localAddr, peerAddr)
+    :Event(loop, EvType::http), socket_(connfd, localAddr, peerAddr)
     {
 
     }
 
-    void TcpEvent::read() const
+    void TcpEvent::read() 
     {
          
     }
 
-    void TcpEvent::write() const
+    void TcpEvent::write()
     {
          
     }
 
     HttpEvent::HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
-    :Event(loop, EvType::tcp), socket_(connfd, localAddr, peerAddr)
+    :Event(loop, EvType::http), socket_(connfd, localAddr, peerAddr)
     {
+        fd_.httpSockFd = connfd;
+        if(fd_.httpSockFd < 0)
+        {
+            //todo log
+            abort();
+        }
+    }
+
+    void HttpEvent::read()
+    {
+        Buffer::Buffer buf(128);
+        int savedErrno = 0;
+        ssize_t n = buf.recv(fd_.httpSockFd, &savedErrno, 4);
+        if(n == 0)
+        {
+            //close
+        }
+        else if(n < 0)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                return;
+            } 
+        }
+
+        uint32_t len = 0;
+        buf.write(&len);
+        n = buf.recv(fd_.httpSockFd, &savedErrno, static_cast<size_t>(len));
+        if(n == 0)
+        {
+            //close
+        }
+        else if(n < 0)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                //close();
+                return;
+            } 
+        }
+
+        httpctx_.parseRequest(&buf);
 
     }
 
-    void HttpEvent::read() const
-    {
-         
-    }
-
-    void HttpEvent::write() const
+    void HttpEvent::write() 
     {
          
     }

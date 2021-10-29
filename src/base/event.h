@@ -62,8 +62,8 @@ namespace Event
         void setReadCb(const EventCallback& readCb) { readCb_ = readCb; }
         EventsLoop* ownerLoop() const { return loop_; }
 
-        virtual void read() const = 0;
-        virtual void write() const = 0;
+        virtual void read() = 0;
+        virtual void write() = 0;
     protected:
         void update();
         EventsLoop* loop_;
@@ -80,8 +80,8 @@ namespace Event
     {
     public:
         TaskEvent(EventsLoop* loop = NULL);
-        void read() const override;
-        void write() const override;
+        void read() override;
+        void write() override;
     };
 
     class TimerEvent : public Event
@@ -89,38 +89,26 @@ namespace Event
     public:
         TimerEvent(long time, EventsLoop* loop = NULL, bool looptimer = false);//us
         void set(long time, bool loop);
-        void read() const override;
-        void write() const override;
+        void read() override;
+        void write() override;
     };
-
     class UdpEvent : public Event
     {
     public:
         UdpEvent(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop = NULL);
-        void read() const override;
-        void write() const override;
+        void read() override;
+        void write() override;
     private:
         Socket::Socket socket_;
     };
-
-    class TcpListenEvent : public Event
-    {
-    public:
-        TcpListenEvent(const uint16_t& localPort, EventsLoop* loop = NULL, bool isHttp = true);
-        void read() const override;
-        void write() const override {}//do nothing
-        bool isHttpListening() const { return isHttpListening_; }
-    private:
-        bool isHttpListening_;
-        Socket::Socket socket_;
-    };
+    using UdpEvPtr = std::shared_ptr<UdpEvent>;
 
     class TcpEvent : public Event
     {
     public:
         TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
-        void read() const override;
-        void write() const override;
+        void read() override;
+        void write() override;
     private:
         Socket::Socket socket_;
     };
@@ -129,12 +117,27 @@ namespace Event
     {
     public:
         HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
-        void read() const override;
-        void write() const override;
+        void read() override;
+        void write() override;
         Http::HttpContext& context() {return httpctx_; } 
     private:
         Socket::Socket socket_;
         Http::HttpContext httpctx_;
+    };
+
+    using HttpEvPtr = std::shared_ptr<HttpEvent>;
+    using ConnectCb = std::function<void(HttpEvPtr)>;
+    class TcpListenEvent : public Event
+    {
+    public:
+        TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp = true, EventsLoop* loop = NULL);
+        void read() override;
+        void write() override {}//do nothing
+        bool isHttpListening() const { return isHttpListening_; }
+    private:
+        ConnectCb conncb_;
+        bool isHttpListening_;
+        Socket::Socket socket_;
     };
 } // namespace Event
   

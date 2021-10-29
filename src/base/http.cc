@@ -223,7 +223,7 @@ namespace Http
             }
             else if (state_ == kExpectBody)
             {
-                // FIXME:
+                buf->retrieveAsStringAll(request_.body());
             }
         }
         return ok;

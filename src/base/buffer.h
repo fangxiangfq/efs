@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <sys/socket.h>
 #include <string.h>
-
+#include "sockets.h"
 namespace Buffer
 {
     class Buffer
@@ -70,6 +70,12 @@ namespace Buffer
             return ret;
         }
 
+        void retrieveAsStringAll(std::string& str)
+        {
+            str.assign(peek(), readableBytes());
+            retrieve(readableBytes());
+        }
+
         void prepend(const void* /*restrict*/ data, size_t len)
         {
             assert(len <= prependableBytes());
@@ -127,6 +133,7 @@ namespace Buffer
         ssize_t recv(int fd, int* savedErrno, size_t len);
         ssize_t send(int fd, int* savedErrno, size_t len);
         ssize_t send(int fd, int* savedErrno);
+        ssize_t sendto(const Socket::SockInfo& info, int* savedErrno);
         //only support basic type without type cast
         template <typename T>
         void read(T& x) 
