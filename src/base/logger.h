@@ -19,14 +19,14 @@ public:
 		spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%l] [%t] - <%s>|<%#>|<%!>,%v");
     }
 
-    Logger(std::string&& filename)
+    Logger()
     {
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);
         stdout_ = spdlog::stdout_color_mt("stdout");
         
 		spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%l] [%t] - <%s>|<%#>|<%!>,%v");
     }
-    
+
     ~Logger()=default;
 
 private:
