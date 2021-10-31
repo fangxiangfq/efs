@@ -6,13 +6,23 @@ namespace Route
     {
         auto it = dstMap_.find(src);
         if(it != dstMap_.end())
-            it->second.insert(dst);
+            it->second.emplace(dst);
         else
         {
             RouteSet s;
-            s.insert(dst);
-            dstMap_.insert(std::make_pair(src, std::move(s)));
-        }  
+            s.emplace(dst);
+            dstMap_.emplace(src, std::move(s));
+        } 
+
+        it = srcMap_.find(dst);
+        if(it != srcMap_.end())
+            it->second.emplace(src);
+        else
+        {
+            RouteSet s;
+            s.emplace(src);
+            dstMap_.emplace(dst, std::move(s));
+        } 
     }
     
     void Router::del(const Socket::SockInfo& src, const Socket::SockInfo& dst) 
@@ -26,19 +36,38 @@ namespace Route
                 dstMap_.erase(it);
             }   
         }
+
+        it = srcMap_.find(dst);
+        if(it != srcMap_.end())
+        {
+            it->second.erase(src);
+            if(0 == it->second.size())
+            {
+                srcMap_.erase(it);
+            }   
+        }
     }
     
-    void Router::del(const Socket::SockInfo& src) 
+    void Router::del(const Socket::SockInfo& src) //may it unsafe
     {
         auto it = dstMap_.find(src);
         if(it != dstMap_.end())
         {
             for(auto it2 = it->second.begin(); it2 != it->second.end();)
             {
+                del(src, *it2);
+                it2++;
+            }
+        }
+
+        it = srcMap_.find(src);
+        if(it != srcMap_.end())
+        {
+            for(auto it2 = it->second.begin(); it2 != it->second.end();)
+            {
                 del(*it2, src);
                 it2++;
             }
-            dstMap_.erase(it);
         }
     }
 

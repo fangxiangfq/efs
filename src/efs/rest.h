@@ -8,7 +8,8 @@ namespace Rest
     enum class Code
     {
         success = 0,
-        bad_request = 1000,
+        unknown_url = 1000,
+        bad_request = 2000,
         server_error,
         server_full
     };
@@ -18,7 +19,7 @@ namespace Rest
     class JsonParser
     {
     public:
-        JsonParser(std::string& body);
+        JsonParser(const std::string& body);
 
         bool createParse(std::string& terno, std::string& ip, uint16_t& port);
         bool deleteParse(std::string& terno);

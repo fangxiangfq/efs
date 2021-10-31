@@ -24,10 +24,12 @@ namespace Thread
     void WorkerFactory::init() 
     {
         assert(!started_);
-        for (int i = 0; i < threadNum_; ++i)
+        for (int i = 0; i < threadNum_; ++i) 
         {
-            workertaskEv_.push_back(std::move(EvManager::createTaskEvPtr()));
-            mastertaskEv_.push_back(std::move(EvManager::createTaskEvPtr()));
+            Event::TaskEvPtr wev(new Event::TaskEvent(nullptr));
+            workertaskEv_.push_back(wev);
+            wev = EvManager::createTaskEvPtr();
+            mastertaskEv_.push_back(wev);
         }
     }
     

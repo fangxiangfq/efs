@@ -1,5 +1,4 @@
 #include "server.h"
-#include "rest.h"
 #include <assert.h>
 
 using std::placeholders::_1;
@@ -39,7 +38,7 @@ namespace Server
         
         for(uint16_t i = min_media_port; i <= max_media_port; i = static_cast<uint16_t>(i + 2))
         {
-            portManager_.insert(i); 
+            portManager_.emplace(i); 
         }
     }
     
@@ -49,6 +48,7 @@ namespace Server
         Rest::JsonBuilder::registerMsg(Rest::Code::bad_request, "bad request");
         Rest::JsonBuilder::registerMsg(Rest::Code::server_error, "server error");
         Rest::JsonBuilder::registerMsg(Rest::Code::server_full, "server full");
+        Rest::JsonBuilder::registerMsg(Rest::Code::unknown_url, "unknown url");
 
         if(!loop_)
         {
@@ -63,7 +63,84 @@ namespace Server
     void Server::onHttpConnect(Event::HttpEvPtr httpev) 
     {
         httpev->setLoop(loop_);
+        httpev->setReqCb(std::bind(&Server::onRequest, this, _1, _2));
         httpev->enableRead();
         evManager_.httpConManager_.emplace(std::move(httpev));
+    }
+
+    void Server::onRequest(const Http::HttpRequest& req, Http::HttpResponse& rsp)
+    {
+        Rest::JsonParser parser(req.body());
+        std::string terno;
+        Rest::Code code = Rest::Code::success;
+
+        if (req.path() == "/create")
+        {
+            std::string ip;
+            uint16_t peer_port;
+            if(!parser.createParse(terno, ip, peer_port))
+            {
+                code = Rest::Code::bad_request;
+            }
+            else
+            {
+                uint16_t port = onCreate(terno, ip, peer_port, code);
+                if(0 != port)
+                {
+                    Rest::JsonBuilder builder(code, "port", port);
+                    rsp.setBody(builder.toString());
+                    return;
+                }
+            }
+        }
+        else if(req.path() == "/delete")
+        {
+            if(!parser.deleteParse(terno))
+            {
+                code = Rest::Code::bad_request;
+            }
+            else
+            {
+                onDelete(terno, code);
+            }
+        }
+        else if(req.path() == "/route")
+        {
+            std::vector<std::string> dst;
+            if(!parser.routeParse(terno, dst))
+            {
+                code = Rest::Code::bad_request;
+            }
+            else
+            {
+                onRoute(terno, dst, code);
+            }
+        }
+        else
+        {
+            code = Rest::Code::unknown_url;
+        }
+        
+        Rest::JsonBuilder builder(code);
+        rsp.setBody(builder.toString());
+    }
+
+    uint16_t Server::onCreate(const std::string& terno, const std::string& peerIp, const uint16_t& peerPort, Rest::Code& code)
+    {
+        if(portManager_.empty())
+        {
+            code = Rest::Code::server_full;
+            return 0;
+        }
+
+        auto it = portManager_.begin();
+        uint16_t port = *it;
+        portManager_.erase(it);
+        return port;
+    }
+    
+    void Server::onDelete(const std::string& terno, Rest::Code& code) 
+    {
+        
     }
 }

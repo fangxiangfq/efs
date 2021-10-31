@@ -4,7 +4,7 @@ namespace Rest
 {
     MsgMap JsonBuilder::msgmap_;
 
-    JsonParser::JsonParser(std::string& body) 
+    JsonParser::JsonParser(const std::string& body) 
     {
         Json::Reader reader;
         parse_ = reader.parse(body, root_);
@@ -30,7 +30,7 @@ namespace Rest
 
         port = static_cast<uint16_t>(tmp.asUInt());
 
-        return port;
+        return true;
     }
     
     bool JsonParser::deleteParse(std::string& terno) 

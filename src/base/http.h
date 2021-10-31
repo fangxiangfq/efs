@@ -25,6 +25,7 @@ namespace Http
         void setPath(const char* start, const char* end){path_.assign(start, end);}
         const std::string& path() const{ return path_; }
         void setQuery(const char* start, const char* end){ query_.assign(start, end);}
+        const std::string& body() const { return body_; }
         std::string& body() { return body_; }
         const std::string& query() const { return query_; }
         const std::map<std::string, std::string>& headers() const { return headers_; }

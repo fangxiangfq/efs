@@ -13,6 +13,7 @@ namespace Route
     {
     private:
         RouteMap dstMap_;
+        RouteMap srcMap_;
     public:
         void add(const Socket::SockInfo& src, const Socket::SockInfo& dst);
         void del(const Socket::SockInfo& src, const Socket::SockInfo& dst);

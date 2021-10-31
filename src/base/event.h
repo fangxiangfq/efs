@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "sockets.h"
 #include "http.h"
+#include "buffer.h"
 
 namespace Event
 {
@@ -46,15 +47,15 @@ namespace Event
     public:
         Event(EventsLoop* loop, EvType type) : loop_(loop), fd_(), type_(type) {}
         virtual ~Event()=default;
-        void setLoop(EventsLoop* loop){ if(!loop_){loop_= loop;} }
+        void setLoop(EventsLoop* loop){ if(NULL != loop_){loop_= loop;} }
 
         int fd() const { return fd_.fd; }
         int events() const { return events_; }
         EvType type() const { return type_; }
         void enableRead() { events_ |= kReadEvent; update(); }
         void disableRead() { events_ &= ~kReadEvent; update(); }
-        void enableWrite() { events_ |= kWriteEvent; update(); }
-        void disableWrite() { events_ &= ~kWriteEvent; update(); }
+        void enablewrite(Buffer::Buffer& buf) { events_ |= kWriteEvent; update(); }
+        void disablewrite(Buffer::Buffer& buf) { events_ &= ~kWriteEvent; update(); }
         void disableAll() { events_ = kNoneEvent; update(); }
         bool isWriting() const { return events_ & kWriteEvent; }
         bool isReading() const { return events_ & kReadEvent; }
@@ -63,7 +64,7 @@ namespace Event
         EventsLoop* ownerLoop() const { return loop_; }
 
         virtual void read() = 0;
-        virtual void write() = 0;
+        virtual void write(Buffer::Buffer& buf) = 0;
     protected:
         void update();
         EventsLoop* loop_;
@@ -80,24 +81,27 @@ namespace Event
     {
     public:
         TaskEvent(EventsLoop* loop = NULL);
+        ~TaskEvent() { ::close(fd_.fd); }
         void read() override;
-        void write() override;
+        void write(Buffer::Buffer& buf) override;
     };
 
     class TimerEvent : public Event
     {
     public:
         TimerEvent(long time, EventsLoop* loop = NULL, bool looptimer = false);//us
+        ~TimerEvent() { ::close(fd_.fd); }
         void set(long time, bool loop);
         void read() override;
-        void write() override;
+        void write(Buffer::Buffer& buf) override;
     };
     class UdpEvent : public Event
     {
     public:
         UdpEvent(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop = NULL);
+        ~UdpEvent() { ::close(fd_.fd); }
         void read() override;
-        void write() override;
+        void write(Buffer::Buffer& buf) override;
     private:
         Socket::Socket socket_;
     };
@@ -108,19 +112,27 @@ namespace Event
     public:
         TcpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
         void read() override;
-        void write() override;
+        void write(Buffer::Buffer& buf) override;
     private:
         Socket::Socket socket_;
     };
-
+    
+    using HttpRequestCb = std::function<void(const Http::HttpRequest& req, Http::HttpResponse& rsp)>;
     class HttpEvent : public Event
     {
     public:
         HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
+        ~HttpEvent() { ::close(fd_.fd); }
         void read() override;
-        void write() override;
+        void write(Buffer::Buffer& buf) override;
+        void setReqCb(const HttpRequestCb& cb) { reqcb_ = cb; }
         Http::HttpContext& context() {return httpctx_; } 
     private:
+        void onRequest(const Http::HttpRequest& req);
+        void shutDown();//must last line of function
+
+        bool isNeedShutDown_;
+        HttpRequestCb reqcb_;
         Socket::Socket socket_;
         Http::HttpContext httpctx_;
     };
@@ -131,8 +143,9 @@ namespace Event
     {
     public:
         TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp = true, EventsLoop* loop = NULL);
+        ~TcpListenEvent() { ::close(fd_.fd); }
         void read() override;
-        void write() override {}//do nothing
+        void write(Buffer::Buffer& buf) override {}//do nothing
         bool isHttpListening() const { return isHttpListening_; }
     private:
         ConnectCb conncb_;

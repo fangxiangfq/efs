@@ -35,7 +35,7 @@ namespace Event
 
     }
 
-    void TaskEvent::write()
+    void TaskEvent::write(Buffer::Buffer& buf)
     {
 
     }
@@ -76,7 +76,7 @@ namespace Event
 
     }
 
-    void TimerEvent::write()
+    void TimerEvent::write(Buffer::Buffer& buf)
     {
 
     }
@@ -99,7 +99,7 @@ namespace Event
          
     }
 
-    void UdpEvent::write() 
+    void UdpEvent::write(Buffer::Buffer& buf) 
     {
 
     }
@@ -140,13 +140,13 @@ namespace Event
          
     }
 
-    void TcpEvent::write()
+    void TcpEvent::write(Buffer::Buffer& buf)
     {
          
     }
 
     HttpEvent::HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
-    :Event(loop, EvType::http), socket_(connfd, localAddr, peerAddr)
+    :Event(loop, EvType::http), isNeedShutDown_(false), socket_(connfd, localAddr, peerAddr)
     {
         fd_.httpSockFd = connfd;
         if(fd_.httpSockFd < 0)
@@ -163,7 +163,7 @@ namespace Event
         ssize_t n = buf.recv(fd_.httpSockFd, &savedErrno, 4);
         if(n == 0)
         {
-            //close
+            isNeedShutDown_ = true;
         }
         else if(n < 0)
         {
@@ -178,23 +178,74 @@ namespace Event
         n = buf.recv(fd_.httpSockFd, &savedErrno, static_cast<size_t>(len));
         if(n == 0)
         {
-            //close
+            isNeedShutDown_ = true;
+            return;
         }
         else if(n < 0)
         {
             if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
             {
-                //close();
+                isNeedShutDown_ = true;
                 return;
             } 
         }
 
-        httpctx_.parseRequest(&buf);
+        if(!httpctx_.parseRequest(&buf))
+        {
+            // write("HTTP/1.1 400 Bad Request\r\n\r\n");
+            isNeedShutDown_ = true;
+            return;
+        }
+        if(httpctx_.gotAll())
+        {
+            onRequest(httpctx_.request());
+            httpctx_.reset();
+        }
+    }
+
+    void HttpEvent::write(Buffer::Buffer& buf) 
+    {
+        int savedErrno = 0;
+        ssize_t n = buf.send(fd_.httpSockFd, &savedErrno);
+        if(n == 0)
+        {
+            return;
+        }
+        else if(n < 0)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                return;
+            } 
+        }
 
     }
 
-    void HttpEvent::write() 
+    void HttpEvent::onRequest(const Http::HttpRequest& req) 
     {
-         
+        const std::string& connection = req.getHeader("Connection");
+        bool close = connection == "close" ||
+            (req.getVersion() == Http::HttpRequest::Version::kHttp10 && connection != "Keep-Alive");
+
+        Http::HttpResponse rsp(close);
+        if(reqcb_)
+        {
+            reqcb_(req, rsp);
+        }
+
+        Buffer::Buffer buf(128);
+        rsp.appendToBuffer(&buf);
+
+
+        if (rsp.closeConnection())
+        {
+            shutDown();
+            return;
+        }
+    }
+
+    void HttpEvent::shutDown() 
+    {
+        //callback
     }
 }
