@@ -1,6 +1,5 @@
 #include "workerfactory.h"
 #include <assert.h>
-
 namespace Thread
 {
     WorkerFactory::WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
@@ -44,7 +43,7 @@ namespace Thread
         {
             char buf[name_.size() + 32];
             snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
-            std::unique_ptr<Thread> worker = std::make_unique<Thread>(*workertaskEv_[i], cb, std::string(buf));
+            std::unique_ptr<Thread> worker(new Thread(*workertaskEv_[i], cb, std::string(buf)));
             loops_.push_back(worker->startLoop());
             threads_.push_back(std::move(worker));
         }

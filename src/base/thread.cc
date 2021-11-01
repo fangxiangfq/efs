@@ -31,7 +31,7 @@ namespace Thread
     
     EventsLoop* Thread::startLoop() 
     {
-        thread_ = std::make_unique<std::thread>(std::bind(&Thread::threadFunc, this));
+        thread_.reset(new std::thread(std::bind(&Thread::threadFunc, this)));
         pthread_setname_np(thread_->native_handle(), name_.c_str());
         EventsLoop* loop = NULL;
         {

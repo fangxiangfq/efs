@@ -29,7 +29,7 @@ namespace Thread
         ~WorkerFactory();
         void init();
         void start(const WorkInitCb& cb = WorkInitCb());
-        uint16_t threadNum() const { return threadNum_; };
+        uint16_t getThreadNum() const { return threadNum_; };
         Event::EventsLoop* getNextLoop();
         Event::EventsLoop* getLoopForHash(size_t hashCode);
 

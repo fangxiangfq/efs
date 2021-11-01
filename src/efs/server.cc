@@ -57,7 +57,7 @@ namespace Server
         }
 
         if(!evManager_.restManager_)
-            evManager_.restManager_ = std::make_unique<Event::TcpListenEvent>(std::bind(&Server::onHttpConnect, this, _1), port, loop_);
+            evManager_.restManager_.reset(new Event::TcpListenEvent(std::bind(&Server::onHttpConnect, this, _1), port, loop_));
     }
     
     void Server::onHttpConnect(Event::HttpEvPtr httpev) 

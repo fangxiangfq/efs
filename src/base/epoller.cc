@@ -17,7 +17,7 @@ namespace Event
             //todo log
         }
 
-        evsptr_ = std::make_unique<struct epoll_event[]>(nfds_);
+        evsptr_.reset(new struct epoll_event[nfds_]);
     }
     
     void Epoller::updateEvent(Event& event) 

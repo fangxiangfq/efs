@@ -3,10 +3,10 @@
 #include <functional>
 #include <memory>
 #include <assert.h>
+#include <unistd.h>
 #include "sockets.h"
 #include "http.h"
 #include "buffer.h"
-
 namespace Event
 {
     class EventsLoop;
@@ -51,7 +51,7 @@ namespace Event
 
         int fd() const { return fd_.fd; }
         int events() const { return events_; }
-        EvType type() const { return type_; }
+        EvType getType() const { return type_; }
         void enableRead() { events_ |= kReadEvent; update(); }
         void disableRead() { events_ &= ~kReadEvent; update(); }
         void enablewrite(Buffer::Buffer& buf) { events_ |= kWriteEvent; update(); }
