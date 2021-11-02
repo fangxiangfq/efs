@@ -5,6 +5,7 @@
 #include "thread.h"
 #include "eventsloop.h"
 #include "evmanager.h"
+#include "logger.h"
 
 namespace Thread
 {

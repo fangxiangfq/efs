@@ -6,6 +6,7 @@
 #include "eventsloop.h"
 #include "evmanager.h"
 #include "sockets.h"
+#include "logger.h"
 
 namespace Event
 {
@@ -18,6 +19,12 @@ namespace Event
         if(loop_)
             loop_->updateEvent(*this);
     }
+
+    void Event::remove()
+    {
+        if(loop_)
+            loop_->removeEvent(*this);
+    } 
 
     TaskEvent::TaskEvent(EventsLoop* loop)
     :Event(loop, EvType::task)
@@ -39,6 +46,7 @@ namespace Event
     {
 
     }
+
 
     TimerEvent::TimerEvent(long time, EventsLoop* loop, bool looptimer)
     :Event(loop, EvType::timer)
@@ -107,6 +115,8 @@ namespace Event
     TcpListenEvent::TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp, EventsLoop* loop)
     :Event(loop, EvType::tcplisten), conncb_(cb), isHttpListening_(isHttp), socket_(Socket::SockType::tcplisten)
     {
+        socket_.setReuseAddr(true);
+        socket_.setReusePort(false);
         socket_.bindAddress(Net::InetAddress(localPort));
         socket_.listen();
         fd_.tcpListenFd = socket_.fd();
@@ -114,7 +124,13 @@ namespace Event
         {
             //todo log
             abort();
-        }
+        } 
+        STD_ERROR("cons");
+    }
+
+    TcpListenEvent::~TcpListenEvent()
+    {
+        STD_ERROR("cons");
     }
 
     void TcpListenEvent::read()
@@ -146,7 +162,7 @@ namespace Event
     }
 
     HttpEvent::HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop)
-    :Event(loop, EvType::http), isNeedShutDown_(false), socket_(connfd, localAddr, peerAddr)
+    :Event(loop, EvType::http), isNeedShutdown_(false), socket_(connfd, localAddr, peerAddr)
     {
         fd_.httpSockFd = connfd;
         if(fd_.httpSockFd < 0)
@@ -163,7 +179,8 @@ namespace Event
         ssize_t n = buf.recv(fd_.httpSockFd, &savedErrno, 4);
         if(n == 0)
         {
-            isNeedShutDown_ = true;
+            handleClose();
+            return;
         }
         else if(n < 0)
         {
@@ -171,6 +188,7 @@ namespace Event
             {
                 return;
             } 
+            handleClose();
         }
 
         uint32_t len = 0;
@@ -178,24 +196,25 @@ namespace Event
         n = buf.recv(fd_.httpSockFd, &savedErrno, static_cast<size_t>(len));
         if(n == 0)
         {
-            isNeedShutDown_ = true;
+            handleClose();
             return;
         }
         else if(n < 0)
         {
             if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
             {
-                isNeedShutDown_ = true;
                 return;
-            } 
+            }
+            shutdown();
         }
 
         if(!httpctx_.parseRequest(&buf))
         {
-            // write("HTTP/1.1 400 Bad Request\r\n\r\n");
-            isNeedShutDown_ = true;
+            write("HTTP/1.1 400 Bad Request\r\n\r\n");
+            shutdown();
             return;
         }
+
         if(httpctx_.gotAll())
         {
             onRequest(httpctx_.request());
@@ -209,6 +228,7 @@ namespace Event
         ssize_t n = buf.send(fd_.httpSockFd, &savedErrno);
         if(n == 0)
         {
+            handleClose();
             return;
         }
         else if(n < 0)
@@ -216,9 +236,29 @@ namespace Event
             if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
             {
                 return;
-            } 
+            }
+            handleClose(); 
         }
+    }
 
+    void HttpEvent::write(std::string str)
+    {
+        int savedErrno = 0;
+        ssize_t n = ::send(fd_.httpSockFd, str.c_str(), str.length(), 0);
+
+        if(n == 0)
+        {
+            handleClose();
+            return;
+        }
+        else if(n < 0)
+        {
+            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
+            {
+                return;
+            }
+            handleClose(); 
+        }
     }
 
     void HttpEvent::onRequest(const Http::HttpRequest& req) 
@@ -226,8 +266,8 @@ namespace Event
         const std::string& connection = req.getHeader("Connection");
         bool close = connection == "close" ||
             (req.getVersion() == Http::HttpRequest::Version::kHttp10 && connection != "Keep-Alive");
-
         Http::HttpResponse rsp(close);
+
         if(reqcb_)
         {
             reqcb_(req, rsp);
@@ -236,16 +276,30 @@ namespace Event
         Buffer::Buffer buf(128);
         rsp.appendToBuffer(&buf);
 
+        write(buf);
 
         if (rsp.closeConnection())
         {
-            shutDown();
-            return;
+            shutdown();
         }
     }
 
-    void HttpEvent::shutDown() 
+    void HttpEvent::shutdown() 
     {
-        //callback
+        socket_.shutdownWrite();
+    }
+
+    void HttpEvent::onClose()
+    {
+        disableAll();
+        remove();
+    }
+
+    void HttpEvent::handleClose()
+    {
+        HttpEvPtr guardThis(shared_from_this());
+        disableAll();
+        if(closecb_)
+            closecb_(guardThis);
     }
 }

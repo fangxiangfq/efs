@@ -57,15 +57,30 @@ namespace Server
         }
 
         if(!evManager_.restManager_)
-            evManager_.restManager_.reset(new Event::TcpListenEvent(std::bind(&Server::onHttpConnect, this, _1), port, loop_));
+        {
+            evManager_.restManager_.reset(new Event::TcpListenEvent(std::bind(&Server::onHttpConnect, this, _1), port, true, loop_));
+        }
+
+        evManager_.restManager_->enableRead();
     }
     
     void Server::onHttpConnect(Event::HttpEvPtr httpev) 
     {
         httpev->setLoop(loop_);
         httpev->setReqCb(std::bind(&Server::onRequest, this, _1, _2));
+        httpev->setCloseCb(std::bind(&Server::onHttpDisconnect, this, _1));
         httpev->enableRead();
         evManager_.httpConManager_.emplace(std::move(httpev));
+    }
+
+    void Server::onHttpDisconnect(const Event::HttpEvPtr& ev)
+    {
+        evManager_.httpConManager_.erase(ev);
+        ev->onClose();
+        if(ev.use_count() > 1)
+        {
+            STD_ERROR("ptr count = {}", ev.use_count());
+        }
     }
 
     void Server::onRequest(const Http::HttpRequest& req, Http::HttpResponse& rsp)

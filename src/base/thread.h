@@ -5,7 +5,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "eventsloop.h"
-
+#include "evmanager.h"
 
 namespace Thread
 {
@@ -16,7 +16,7 @@ namespace Thread
         using ThreadFunc = std::function<void ()>;
         using ThreadInitCallback = std::function<void(Event::EventsLoop*)>;
 
-        Thread(Event::Event& workerEv, const ThreadInitCallback& cb = ThreadInitCallback(), const std::string& name = std::string());
+        Thread(Event::TaskEvPtr workerEv, const ThreadInitCallback& cb = ThreadInitCallback(), const std::string& name = std::string());
         ~Thread();
         Thread(const Thread&) = delete;
 	    Thread& operator=(const Thread&) = delete;
@@ -30,6 +30,6 @@ namespace Thread
         std::condition_variable cond_;
         ThreadInitCallback callback_;
         const std::string name_;
-        Event::Event& workerEv_;
+        Event::TaskEvPtr workerEv_;
     };
 }

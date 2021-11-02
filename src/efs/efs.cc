@@ -27,7 +27,7 @@ void Efs::dispatch(Event::Event& ev)
         abort();
     }
 
-    switch (ev.type())
+    switch (ev.getType())
     {
     case Event::EvType::udp:
         onUdpMessage(ev);

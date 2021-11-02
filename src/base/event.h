@@ -7,6 +7,7 @@
 #include "sockets.h"
 #include "http.h"
 #include "buffer.h"
+
 namespace Event
 {
     class EventsLoop;
@@ -61,6 +62,7 @@ namespace Event
         bool isReading() const { return events_ & kReadEvent; }
         bool isNoneEvent() const { return events_ == kNoneEvent; }
         void setReadCb(const EventCallback& readCb) { readCb_ = readCb; }
+        void remove();
         EventsLoop* ownerLoop() const { return loop_; }
 
         virtual void read() = 0;
@@ -99,7 +101,7 @@ namespace Event
     {
     public:
         UdpEvent(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop = NULL);
-        ~UdpEvent() { ::close(fd_.fd); }
+        ~UdpEvent()=default;
         void read() override;
         void write(Buffer::Buffer& buf) override;
     private:
@@ -117,33 +119,41 @@ namespace Event
         Socket::Socket socket_;
     };
     
+    class HttpEvent;
     using HttpRequestCb = std::function<void(const Http::HttpRequest& req, Http::HttpResponse& rsp)>;
-    class HttpEvent : public Event
+    using HttpEvPtr = std::shared_ptr<HttpEvent>;
+    using ConnectCb = std::function<void(HttpEvPtr)>;
+    using HttpCloseCb = std::function<void(HttpEvPtr)>;
+
+    class HttpEvent : public Event , public std::enable_shared_from_this<HttpEvent> 
     {
     public:
         HttpEvent(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, EventsLoop* loop = NULL);
-        ~HttpEvent() { ::close(fd_.fd); }
+        ~HttpEvent()=default;
         void read() override;
         void write(Buffer::Buffer& buf) override;
+        void write(std::string str);
+        void onClose();
         void setReqCb(const HttpRequestCb& cb) { reqcb_ = cb; }
+        void setCloseCb(const HttpCloseCb& cb) { closecb_ = cb; }
         Http::HttpContext& context() {return httpctx_; } 
     private:
         void onRequest(const Http::HttpRequest& req);
-        void shutDown();//must last line of function
+        void handleClose();
+        void shutdown();
 
-        bool isNeedShutDown_;
+        bool isNeedShutdown_;
         HttpRequestCb reqcb_;
+        HttpCloseCb closecb_;
         Socket::Socket socket_;
         Http::HttpContext httpctx_;
     };
 
-    using HttpEvPtr = std::shared_ptr<HttpEvent>;
-    using ConnectCb = std::function<void(HttpEvPtr)>;
     class TcpListenEvent : public Event
     {
     public:
         TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp = true, EventsLoop* loop = NULL);
-        ~TcpListenEvent() { ::close(fd_.fd); }
+        ~TcpListenEvent();
         void read() override;
         void write(Buffer::Buffer& buf) override {}//do nothing
         bool isHttpListening() const { return isHttpListening_; }

@@ -46,7 +46,7 @@ namespace Server
         void restManagerInit(uint16_t port = 8000);
         void onHttpConnect(Event::HttpEvPtr httpev);
         void onRequest(const Http::HttpRequest& req, Http::HttpResponse& rsp);
-
+        void onHttpDisconnect(const Event::HttpEvPtr& ev);
     //restManage
         uint16_t onCreate(const std::string& terno, const std::string& peerIp, const uint16_t& peerPort, Rest::Code& code);
         void onDelete(const std::string& terno, Rest::Code& code);

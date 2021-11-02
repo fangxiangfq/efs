@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sys/uio.h>  // readv
 #include <unistd.h>
+#include "logger.h"
+
 using namespace Net;
 namespace Socket
 {
@@ -36,19 +38,22 @@ namespace Socket
         if(0 > sock_.sockfd_)
         {
             //todo log
+            STD_CRIT("create sock fail errno {}", errno);
         }
+        STD_ERROR("cons");
     }
     
     Socket::Socket(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, SockType type) 
     :sock_(connfd, localAddr, peerAddr), type_(type)
     {
-        
+        STD_ERROR("cons");
     }
 
     Socket::~Socket()
     {
         if(sock_.sockfd_ > 0)
             ::close(sock_.sockfd_);
+        STD_ERROR("cons");
     }
     
     
@@ -57,6 +62,7 @@ namespace Socket
         int ret = ::bind(sock_.sockfd_, localaddr.getSockAddr(), static_cast<socklen_t>(sizeof(struct sockaddr_in)));
         if(ret < 0)
         {
+            STD_CRIT("bind fail errno {}", errno);
             //todo log
         }
     }
@@ -66,6 +72,7 @@ namespace Socket
         int ret = ::listen(sock_.sockfd_, SOMAXCONN);
         if(ret < 0)
         {
+            STD_CRIT("listen fail errno {}", errno);
             //todo log
         }
     }
@@ -107,6 +114,22 @@ namespace Socket
         int optval = on ? 1 : 0;
         ::setsockopt(sock_.sockfd_, SOL_SOCKET, SO_KEEPALIVE,
                &optval, static_cast<socklen_t>(sizeof optval));
+    }
+
+    void Socket::shutdownWrite() 
+    {
+        if(::shutdown(sock_.sockfd_, SHUT_WR) < 0)
+        {
+
+        }
+    }
+
+    void Socket::shutdownWriteRead() 
+    {
+        if(::shutdown(sock_.sockfd_, SHUT_RDWR) < 0)
+        {
+
+        }
     }
 
     struct sockaddr_in getLocalAddr(int sockfd)

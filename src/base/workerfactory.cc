@@ -8,8 +8,6 @@ namespace Thread
     started_(false),
     threadNum_(threadNum),
     workerIdx(0),
-    workertaskEv_(threadNum_),
-    mastertaskEv_(threadNum_),
     threads_(threadNum_)
     {
         init();
@@ -24,11 +22,9 @@ namespace Thread
     {
         assert(!started_);
         for (int i = 0; i < threadNum_; ++i) 
-        {
-            Event::TaskEvPtr wev(new Event::TaskEvent(nullptr));
-            workertaskEv_.push_back(wev);
-            wev = EvManager::createTaskEvPtr();
-            mastertaskEv_.push_back(wev);
+        { 
+            workertaskEv_.emplace_back(EvManager::createTaskEvPtr());
+            mastertaskEv_.emplace_back(EvManager::createTaskEvPtr());
         }
     }
     
@@ -43,7 +39,7 @@ namespace Thread
         {
             char buf[name_.size() + 32];
             snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
-            std::unique_ptr<Thread> worker(new Thread(*workertaskEv_[i], cb, std::string(buf)));
+            std::unique_ptr<Thread> worker(new Thread(workertaskEv_[i], cb, std::string(buf)));
             loops_.push_back(worker->startLoop());
             threads_.push_back(std::move(worker));
         }
