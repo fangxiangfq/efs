@@ -16,7 +16,7 @@ public:
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);
         stdout_ = spdlog::stdout_color_mt("stdout");
         
-		spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%l] [%t] - <%s>|<%#>|<%!>,%v");
+		spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%f [%L] [%t] [%P] - <%s:%#:%!>, %v");
     }
 
     Logger()
@@ -24,7 +24,7 @@ public:
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);
         stdout_ = spdlog::stdout_color_mt("stdout");
         
-		spdlog::set_pattern("%Y-%m-%d %H:%M:%S [%l] [%t] - <%s>|<%#>|<%!>,%v");
+		spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%f [%L] [%t] [%P] - <%s:%#:%!>, %v");
     }
 
     ~Logger()=default;
@@ -43,5 +43,5 @@ private:
 #define WARN(...) SPDLOG_LOGGER_WARN(spdlog::get("logger"), __VA_ARGS__)
 #define STD_ERROR(...) SPDLOG_LOGGER_ERROR(spdlog::default_logger_raw(), __VA_ARGS__)
 #define ERROR(...) SPDLOG_LOGGER_ERROR(spdlog::get("logger"), __VA_ARGS__)
-#define STD_CRIT(...) SPDLOG_LOGGER_ERROR(spdlog::default_logger_raw(), __VA_ARGS__)
+#define STD_CRIT(...) SPDLOG_LOGGER_CRITICAL(spdlog::default_logger_raw(), __VA_ARGS__)
 #define CRIT(...) SPDLOG_LOGGER_CRITICAL(spdlog::get("logger"), __VA_ARGS__)

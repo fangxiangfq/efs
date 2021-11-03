@@ -62,6 +62,7 @@ namespace Server
         }
 
         evManager_.restManager_->enableRead();
+        STD_INFO("start http listen");
     }
     
     void Server::onHttpConnect(Event::HttpEvPtr httpev) 
