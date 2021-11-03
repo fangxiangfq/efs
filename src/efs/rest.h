@@ -1,7 +1,9 @@
-#include "json/json.h"
+#pragma once
 #include <string>
 #include <map>
 #include <memory>
+#include "http.h"
+#include "json/json.h"
 
 namespace Rest
 {
@@ -43,4 +45,6 @@ namespace Rest
     private:
         Json::Value root_;
     };
+
+    void setHttpResponse(Http::HttpResponse& rsp, const Code& code);
 }

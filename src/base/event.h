@@ -48,7 +48,7 @@ namespace Event
     public:
         Event(EventsLoop* loop, EvType type) : loop_(loop), fd_(), type_(type) {}
         virtual ~Event()=default;
-        void setLoop(EventsLoop* loop){ if(NULL != loop_){loop_= loop;} }
+        void setLoop(EventsLoop* loop){ if(NULL == loop_){loop_= loop;} }
 
         int fd() const { return fd_.fd; }
         int events() const { return events_; }
@@ -77,6 +77,7 @@ namespace Event
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
+        static const size_t kMaxTcpMsgLen;
     };
 
     class TaskEvent : public Event

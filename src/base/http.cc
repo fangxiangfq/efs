@@ -211,8 +211,8 @@ namespace Http
                     }
                     else
                     {
-                        state_ = kGotAll;
-                        hasMore = false;
+                        state_ = kExpectBody;
+                        hasMore = true;
                     }
                     buf->retrieveUntil(crlf + 2);
                 }
@@ -224,6 +224,8 @@ namespace Http
             else if (state_ == kExpectBody)
             {
                 buf->retrieveAsStringAll(request_.body());
+                state_ = kGotAll;
+                hasMore = false;
             }
         }
         return ok;

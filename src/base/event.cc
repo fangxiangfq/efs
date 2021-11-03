@@ -13,6 +13,7 @@ namespace Event
     const int Event::kNoneEvent = 0;
     const int Event::kReadEvent = EPOLLIN | EPOLLPRI;
     const int Event::kWriteEvent = EPOLLOUT;
+    const size_t Event::kMaxTcpMsgLen = 65535;
 
     void Event::update() 
     {
@@ -125,12 +126,12 @@ namespace Event
             //todo log
             abort();
         } 
-        STD_ERROR("cons");
+
     }
 
     TcpListenEvent::~TcpListenEvent()
     {
-        STD_ERROR("cons");
+
     }
 
     void TcpListenEvent::read()
@@ -174,9 +175,9 @@ namespace Event
 
     void HttpEvent::read()
     {
-        Buffer::Buffer buf(128);
+        Buffer::Buffer buf(kMaxTcpMsgLen);
         int savedErrno = 0;
-        ssize_t n = buf.recv(fd_.httpSockFd, &savedErrno, 4);
+        ssize_t n = buf.recv(fd_.httpSockFd, &savedErrno, kMaxTcpMsgLen);
         if(n == 0)
         {
             handleClose();
@@ -189,23 +190,6 @@ namespace Event
                 return;
             } 
             handleClose();
-        }
-
-        uint32_t len = 0;
-        buf.write(&len);
-        n = buf.recv(fd_.httpSockFd, &savedErrno, static_cast<size_t>(len));
-        if(n == 0)
-        {
-            handleClose();
-            return;
-        }
-        else if(n < 0)
-        {
-            if((savedErrno == EAGAIN || savedErrno == EWOULDBLOCK))
-            {
-                return;
-            }
-            shutdown();
         }
 
         if(!httpctx_.parseRequest(&buf))

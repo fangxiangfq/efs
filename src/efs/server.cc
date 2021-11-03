@@ -82,7 +82,7 @@ namespace Server
             STD_ERROR("ptr count = {}", ev.use_count());
         }
     }
-
+    
     void Server::onRequest(const Http::HttpRequest& req, Http::HttpResponse& rsp)
     {
         Rest::JsonParser parser(req.body());
@@ -104,8 +104,10 @@ namespace Server
                 {
                     Rest::JsonBuilder builder(code, "port", port);
                     rsp.setBody(builder.toString());
+                    Rest::setHttpResponse(rsp, code);
                     return;
                 }
+                code = Rest::Code::server_error;
             }
         }
         else if(req.path() == "/delete")
@@ -135,7 +137,7 @@ namespace Server
         {
             code = Rest::Code::unknown_url;
         }
-        
+        Rest::setHttpResponse(rsp, code);
         Rest::JsonBuilder builder(code);
         rsp.setBody(builder.toString());
     }

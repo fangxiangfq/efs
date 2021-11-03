@@ -4,6 +4,33 @@ namespace Rest
 {
     MsgMap JsonBuilder::msgmap_;
 
+    void setHttpResponse(Http::HttpResponse& rsp, const Code& code)
+    {
+        if(Code::success == code)
+        {
+            rsp.setStatusCode(Http::HttpResponse::HttpStatusCode::k200Ok);
+            rsp.setStatusMessage("OK");
+        }
+        else if (Code::bad_request == code)
+        {
+            rsp.setStatusCode(Http::HttpResponse::HttpStatusCode::k400BadRequest);
+            rsp.setStatusMessage("ERR");
+        }
+        else if (Code::unknown_url == code)
+        {
+            rsp.setStatusCode(Http::HttpResponse::HttpStatusCode::k301MovedPermanently);
+            rsp.setStatusMessage("ERR");
+        }
+        else
+        {
+            rsp.setStatusCode(Http::HttpResponse::HttpStatusCode::k500ServErr);
+            rsp.setStatusMessage("ERR");
+        }
+
+        rsp.setContentType("application/json");
+        rsp.addHeader("Server", "Efs");
+    }
+    
     JsonParser::JsonParser(const std::string& body) 
     {
         Json::Reader reader;

@@ -17,12 +17,12 @@ namespace Event
         ~EventManager()=default;
         static TaskEvPtr createTaskEvPtr()
         {
-            return std::make_shared<TaskEvent>(nullptr);
+            return std::make_shared<TaskEvent>();
         }
 
         static TaskEvent&& createTaskEv()
         {
-            return std::move(TaskEvent(nullptr));
+            return std::move(TaskEvent());
         }
 
         static HttpEvent&& createHttpEv(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr)

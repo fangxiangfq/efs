@@ -40,20 +40,19 @@ namespace Socket
             //todo log
             STD_CRIT("create sock fail errno {}", errno);
         }
-        STD_ERROR("cons");
+
     }
     
     Socket::Socket(const int& connfd, const Net::InetAddress& localAddr, const Net::InetAddress& peerAddr, SockType type) 
     :sock_(connfd, localAddr, peerAddr), type_(type)
     {
-        STD_ERROR("cons");
+
     }
 
     Socket::~Socket()
     {
         if(sock_.sockfd_ > 0)
             ::close(sock_.sockfd_);
-        STD_ERROR("cons");
     }
     
     
