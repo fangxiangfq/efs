@@ -79,6 +79,7 @@ namespace Socket
         void setPeerAddr(Net::InetAddress&& peerAddr){ sock_.peerAddr_ = peerAddr;}
         void shutdownWrite();
         void shutdownWriteRead();
+        SockInfo& sock() { return sock_; }
     private:
         SockInfo sock_;
         SockType type_;

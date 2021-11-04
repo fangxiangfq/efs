@@ -105,6 +105,7 @@ namespace Event
         ~UdpEvent()=default;
         void read() override;
         void write(Buffer::Buffer& buf) override;
+        const Socket::SockInfo& sock() { return socket_.sock(); }
     private:
         Socket::Socket socket_;
     };

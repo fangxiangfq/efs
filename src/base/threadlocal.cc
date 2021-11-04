@@ -4,6 +4,23 @@ namespace ThreadLocal
 {
     thread_local ThreadLocal::ThreadLocalData ThreadLocal::threadLocalData_;
     
+    SlotPtr ThreadLocal::allocateSlot()
+    {
+        assert(std::this_thread::get_id() == mainThreadId_);
+        assert(!shutdown_);   
+        for (size_t i = 0; i < slots_.size(); i++) {
+            if (slots_[i] == nullptr) {
+                std::unique_ptr<SlotImpl> slot(new SlotImpl(*this, i));
+                slots_[i] = slot.get();
+                return std::move(slot);
+            }
+        }
+
+        std::unique_ptr<SlotImpl> slot(new SlotImpl(*this, slots_.size()));
+        slots_.push_back(slot.get());
+        return std::move(slot);
+    }
+
     void ThreadLocal::registerThread(Event::EventsLoop* loop, bool mainThread) 
     {
         if (mainThread) 
@@ -55,7 +72,7 @@ namespace ThreadLocal
         cb();
     }
 
-    void ThreadLocal::setThreadLocal(uint32_t index, ThreadLocalObjectSharedPtr object)
+    void ThreadLocal::setThreadLocal(size_t index, ThreadLocalObjectSharedPtr object)
     {
         if (threadLocalData_.data_.size() <= index) 
         {
@@ -88,13 +105,14 @@ namespace ThreadLocal
         assert(!parent_.shutdown_);
 
         for (Event::EventsLoop* loop : parent_.registeredThreads_) {
-            const uint32_t index = index_;
+            const size_t index = index_;
             loop->post([index, cb, loop]() -> void { setThreadLocal(index, cb(loop)); });
         }
 
         // Handle main thread.
         setThreadLocal(index_, cb(parent_.mainLoop_));
     }
+
     void ThreadLocal::removeSlot(SlotImpl& slot)
     {
         assert(std::this_thread::get_id() == main_thread_id_);

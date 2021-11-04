@@ -51,6 +51,6 @@ namespace Server
     //restManage
         uint16_t onCreate(const std::string& terno, const std::string& peerIp, const uint16_t& peerPort, Rest::Code& code);
         void onDelete(const std::string& terno, Rest::Code& code);
-        void onRoute(const std::string& terno, const std::vector<std::string>& dst, Rest::Code& code){};
+        void onRoute(const std::string& terno, const std::vector<std::string>& dst, Rest::Code& code);
     };  
 }

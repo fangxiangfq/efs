@@ -49,12 +49,12 @@ namespace ThreadLocal
 
         void runOnAllThreads(Event::PostCb cb);
         void runOnAllThreads(Event::PostCb cb, Event::PostCb main_callback);
-        static void setThreadLocal(uint32_t index, ThreadLocalObjectSharedPtr object);
+        static void setThreadLocal(size_t index, ThreadLocalObjectSharedPtr object);
 
     private:
         struct SlotImpl : public Slot 
         {
-            SlotImpl(ThreadLocal& parent, uint32_t index) : parent_(parent), index_(index) {}
+            SlotImpl(ThreadLocal& parent, size_t index) : parent_(parent), index_(index) {}
             ~SlotImpl() { parent_.removeSlot(*this); }
 
             // ThreadLocal::Slot
@@ -76,7 +76,7 @@ namespace ThreadLocal
             void set(InitializeCb cb) override;
 
             ThreadLocal& parent_;
-            const uint32_t index_;
+            const size_t index_;
         };
 
         struct ThreadLocalData 

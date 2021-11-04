@@ -13,6 +13,11 @@ namespace Event
     class EventManager final
     {
     public:
+        std::set<HttpEvPtr> httpConManager_;
+        std::map<std::string, UdpEvPtr> termManager_;
+        TcpListenEvPtr restManager_{};
+
+    public:
         EventManager()=default;
         ~EventManager()=default;
         static TaskEvPtr createTaskEvPtr()
@@ -45,10 +50,10 @@ namespace Event
             return std::make_shared<HttpEvent>(connfd, localAddr, peerAddr, loop);
         }
 
-    public:
-        std::set<HttpEvPtr> httpConManager_;
-        std::map<std::string, UdpEvPtr> termManager_;
-        TcpListenEvPtr restManager_{};
+        static UdpEvPtr createUdpEvPtr(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop)
+        {
+            return std::make_shared<UdpEvent>(localPort, peerPort, peerIp, loop);
+        }
     };
 }
 

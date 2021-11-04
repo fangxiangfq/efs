@@ -13,7 +13,9 @@ namespace Rest
         unknown_url = 1000,
         bad_request = 2000,
         server_error,
-        server_full
+        server_full,
+        terno_exist,
+        terno_not_exist
     };
 
     using MsgMap = std::map<uint16_t, std::string>;

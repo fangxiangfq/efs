@@ -49,6 +49,8 @@ namespace Server
         Rest::JsonBuilder::registerMsg(Rest::Code::server_error, "server error");
         Rest::JsonBuilder::registerMsg(Rest::Code::server_full, "server full");
         Rest::JsonBuilder::registerMsg(Rest::Code::unknown_url, "unknown url");
+        Rest::JsonBuilder::registerMsg(Rest::Code::terno_exist, "terno exsit");
+        Rest::JsonBuilder::registerMsg(Rest::Code::terno_not_exist, "terno not exsit");
 
         if(!loop_)
         {
@@ -152,13 +154,46 @@ namespace Server
         }
 
         auto it = portManager_.begin();
+        if(evManager_.termManager_.count(terno) != 0)
+        {
+            code = Rest::Code::terno_exist;
+            return 0;
+        }
+
         uint16_t port = *it;
         portManager_.erase(it);
+
+        evManager_.termManager_.emplace(terno, std::move(EvManager::createUdpEvPtr(port, peerPort, peerIp, loop_)));
+        evManager_.termManager_[terno]->enableRead();
         return port;
     }
     
     void Server::onDelete(const std::string& terno, Rest::Code& code) 
     {
-        
+        auto it = evManager_.termManager_.find(terno);
+        if(it != evManager_.termManager_.end())
+        {
+            it->second->disableAll();
+            it->second->remove();
+            evManager_.termManager_.erase(it);
+        }
+    }
+    
+    void Server::onRoute(const std::string& terno, const std::vector<std::string>& dst, Rest::Code& code) 
+    {
+        auto it = evManager_.termManager_.find(terno);
+        if(it != evManager_.termManager_.end())
+        {
+            for(auto& str : dst)
+            {
+                auto dt = evManager_.termManager_.find(str);
+                if(dt != evManager_.termManager_.end())
+                {
+                    routeManager_.add(it->second->sock(), dt->second->sock());
+                }
+            }
+            return;
+        }
+        code = Rest::Code::terno_not_exist;
     }
 }
