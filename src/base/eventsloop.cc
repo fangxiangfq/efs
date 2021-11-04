@@ -38,6 +38,7 @@ namespace Event
                 //todo log
                 abort();
             }
+            handlePostCbs();
         }
         //other thing
     }
