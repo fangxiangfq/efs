@@ -61,7 +61,6 @@ namespace Event
         bool isWriting() const { return events_ & kWriteEvent; }
         bool isReading() const { return events_ & kReadEvent; }
         bool isNoneEvent() const { return events_ == kNoneEvent; }
-        void setReadCb(const EventCallback& readCb) { readCb_ = readCb; }
         void remove();
         EventsLoop* ownerLoop() const { return loop_; }
 
@@ -73,20 +72,26 @@ namespace Event
         BaseFd fd_;
         int events_{0};
         EvType type_; 
-        EventCallback readCb_;
+        
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
         static const size_t kMaxTcpMsgLen;
     };
 
+    using TaskMsgCb = std::function<void(void* data)>;
     class TaskEvent : public Event
     {
     public:
         TaskEvent(EventsLoop* loop = NULL);
         ~TaskEvent() { ::close(fd_.fd); }
+        void setTaskCb(const TaskMsgCb& cb) { taskcb_ = cb; }
         void read() override;
-        void write(Buffer::Buffer& buf) override;
+        void write(Buffer::Buffer& buf) override {};
+        void write(const uint64_t& data);
+        void write(const void* data);
+    private:
+        TaskMsgCb taskcb_;
     };
 
     class TimerEvent : public Event
@@ -98,19 +103,25 @@ namespace Event
         void read() override;
         void write(Buffer::Buffer& buf) override;
     };
-    class UdpEvent : public Event
+
+    class UdpEvent;
+    using UdpEvPtr = std::shared_ptr<UdpEvent>;
+    using UdpMsgCb = std::function<void(const UdpEvPtr&)>;
+
+    class UdpEvent : public Event, public std::enable_shared_from_this<UdpEvent> 
     {
     public:
         UdpEvent(const uint16_t& localPort, const uint16_t& peerPort, const std::string& peerIp, EventsLoop* loop = NULL);
         ~UdpEvent()=default;
+        void setMsgCb(const UdpMsgCb& cb) { msgcb_ = cb; }
         void read() override;
         void write(Buffer::Buffer& buf) override;
         const Socket::SockInfo& sock() { return socket_.sock(); }
     private:
+        UdpMsgCb msgcb_;
         Socket::Socket socket_;
     };
-    using UdpEvPtr = std::shared_ptr<UdpEvent>;
-
+    
     class TcpEvent : public Event
     {
     public:
@@ -125,7 +136,7 @@ namespace Event
     using HttpRequestCb = std::function<void(const Http::HttpRequest& req, Http::HttpResponse& rsp)>;
     using HttpEvPtr = std::shared_ptr<HttpEvent>;
     using ConnectCb = std::function<void(HttpEvPtr)>;
-    using HttpCloseCb = std::function<void(HttpEvPtr)>;
+    using HttpCloseCb = std::function<void(const HttpEvPtr&)>;
 
     class HttpEvent : public Event , public std::enable_shared_from_this<HttpEvent> 
     {

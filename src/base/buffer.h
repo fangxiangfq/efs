@@ -134,6 +134,7 @@ namespace Buffer
         ssize_t send(int fd, int* savedErrno, size_t len);
         ssize_t send(int fd, int* savedErrno);
         ssize_t sendto(const Socket::SockInfo& info, int* savedErrno);
+        
         //only support basic type without type cast
         template <typename T>
         void read(T& x) 

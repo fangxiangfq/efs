@@ -1,5 +1,7 @@
 #include "workerfactory.h"
 #include <assert.h>
+using std::placeholders::_1;
+
 namespace Thread
 {
     WorkerFactory::WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
@@ -7,7 +9,7 @@ namespace Thread
     name_(nameArg),
     started_(false),
     threadNum_(threadNum),
-    workerIdx(0),
+    workerIdx_(0),
     threads_(threadNum_)
     {
         init();
@@ -24,6 +26,7 @@ namespace Thread
         for (int i = 0; i < threadNum_; ++i) 
         { 
             workertaskEv_.emplace_back(EvManager::createTaskEvPtr());
+            workertaskEv_[i]->setTaskCb(std::bind(WorkerFactory::execTask, _1));
             mastertaskEv_.emplace_back(EvManager::createTaskEvPtr());
         }
     }
@@ -50,6 +53,16 @@ namespace Thread
         }
     }
     
+    uint16_t WorkerFactory::getNextIdx() 
+    {
+        ++workerIdx_;
+        if (workerIdx_ >= loops_.size())
+        {
+            workerIdx_ = 0;
+        }
+        return workerIdx_;
+    }
+
     Event::EventsLoop* WorkerFactory::getNextLoop() 
     {
         baseLoop_->assertSelfThread();
@@ -58,11 +71,11 @@ namespace Thread
 
         if(!loops_.empty())
         {
-            loop = loops_[workerIdx];
-            ++workerIdx;
-            if (workerIdx >= loops_.size())
+            loop = loops_[workerIdx_];
+            ++workerIdx_;
+            if (workerIdx_ >= loops_.size())
             {
-                workerIdx = 0;
+                workerIdx_ = 0;
             }
         }
 
@@ -79,5 +92,29 @@ namespace Thread
             loop = loops_[hashCode % loops_.size()];
         }
         return loop;
+    }
+
+    void WorkerFactory::postTask(TaskCb cb) 
+    {
+        if(threadNum_ == 0){
+            cb();
+            return;
+        }
+
+        TaskData* task = new TaskData(std::move(cb));
+        uint16_t idx = getNextIdx();
+
+        auto& workerev = workertaskEv_[idx];
+
+        workerev->write(task);
+    }
+
+    void WorkerFactory::execTask(void* taskdata) 
+    {
+        TaskData* task = static_cast<TaskData*>(taskdata);
+        if(task->cb_)
+            task->cb_();
+        
+        delete task;
     }
 }

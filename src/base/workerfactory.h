@@ -18,30 +18,31 @@ namespace Thread
 
         struct TaskData
         {
-            uint16_t taskNo;
-            TaskCb Cb;
+            TaskData(TaskCb&& cb):cb_(cb){};
+            TaskCb cb_;
         };
 
-        void postTask(){};
-        void postEvent(Event::Event& ev){};
-        void execTask(){};
 
         WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum = 8);
         ~WorkerFactory();
         void init();
         void start(const WorkInitCb& cb = WorkInitCb());
-        uint16_t getThreadNum() const { return threadNum_; };
+        uint16_t getThreadNum() const { return threadNum_; }
+        uint16_t getNextIdx(); 
         Event::EventsLoop* getNextLoop();
         Event::EventsLoop* getLoopForHash(size_t hashCode);
-
+        
         bool started() const { return started_; }
         const std::string& name() const { return name_; }
+        
+        void postTask(TaskCb cb);
+        static void execTask(void* taskdata);
     private:
         Event::EventsLoop* baseLoop_;
         std::string name_;
         bool started_;
         uint16_t threadNum_;
-        uint16_t workerIdx;
+        uint16_t workerIdx_;
 
         std::map<uint16_t, TaskCb> taskMap_;
         std::vector<Event::TaskEvPtr> workertaskEv_;

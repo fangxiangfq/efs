@@ -5,10 +5,11 @@
 #include <vector>
 #include <mutex>
 #include <map>
-#include "epoller.h"
-#include "event.h"
 #include <atomic>
 #include <assert.h>
+#include "epoller.h"
+#include "event.h"
+#include "evmanager.h"
 
 namespace Event
 {
@@ -25,6 +26,9 @@ namespace Event
 
         void updateEvent(Event& event);
         void removeEvent(Event& event);
+
+        void disableEvent(Event& event);//must thread safe
+        void enableEvent(Event& event);//must thread safe
 
         bool hasEvent(Event& event)
         {
@@ -45,20 +49,18 @@ namespace Event
                 abort();
             }
         }
-        
-        void wakeup();
+
+        void wakeup() { uint64_t one = 1; wakeupEv_->write(one); };
         void post(const PostCb& cb);
     private:
         void handlePostCbs();
-        void handleWakeUp();
-        
+   
         bool looping_;
         std::atomic<bool> quit_;
         const std::thread::id tid_;
         std::unique_ptr<Epoller> poller_;
 
-        std::unique_ptr<Event> wakeupEv_;
-        int wakeupFd_;
+        TaskEvPtr wakeupEv_;
 
         bool doingPostCb_; 
         std::mutex mutex_;

@@ -11,21 +11,14 @@ namespace Event
     poller_(new Epoller()),
     wakeupEv_(new TaskEvent(this))
     {
-        wakeupFd_ = wakeupEv_->fd();
-        if(wakeupFd_ < 0)
-        {
-            //todo log
-            abort();
-        }
-        wakeupEv_->setReadCb(std::bind(&EventsLoop::handleWakeUp, this));
         wakeupEv_->enableRead();
     }
     
     EventsLoop::~EventsLoop()
     {
-        ::close(wakeupFd_);
-    }
 
+    }
+    
     void EventsLoop::loop()
     {
         assert(!looping_);
@@ -57,14 +50,14 @@ namespace Event
         poller_->removeEvent(event);
     }
 
-    void EventsLoop::wakeup()
+    void EventsLoop::disableEvent(Event& event) 
     {
-        uint64_t one = 1;
-        ssize_t n = ::write(wakeupFd_, &one, sizeof one);
-        if (n != sizeof one)
-        {
-            
-        }
+        poller_->updateEvent(event);
+    }
+
+    void EventsLoop::enableEvent(Event& event) 
+    {
+        poller_->updateEvent(event);
     }
 
     void EventsLoop::post(const PostCb& cb)
@@ -96,15 +89,5 @@ namespace Event
         }
 
         doingPostCb_ = false;
-    }
-
-    void EventsLoop::handleWakeUp()
-    {
-        uint64_t one = 1;
-        ssize_t n = ::read(wakeupFd_, &one, sizeof one);
-        if (n != sizeof one)
-        {
-            
-        }
     }
 }

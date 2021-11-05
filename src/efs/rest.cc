@@ -105,7 +105,6 @@ namespace Rest
         root_["msg"] = msgmap_[rspCode];
     }
     
-    //todo change to templates
     JsonBuilder::JsonBuilder(const Code& code, const std::string& key, const uint16_t& value) 
     {
         uint16_t rspCode = static_cast<uint16_t>(code);

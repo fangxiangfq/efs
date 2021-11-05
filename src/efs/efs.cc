@@ -4,7 +4,7 @@
 Efs::Efs() 
 :main_loop_(), server_(&main_loop_, std::string("efs"))
 {
-    server_.setEvCallback(std::bind(&Efs::dispatch, this, _1));
+    // server_.setEvCallback(std::bind(&Efs::dispatch, this, _1));
 }
 
 void Efs::registerTasks(Event::TaskMap& taskmap) 

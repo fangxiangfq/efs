@@ -18,6 +18,9 @@ namespace Route
         void add(const Socket::SockInfo& src, const Socket::SockInfo& dst);
         void del(const Socket::SockInfo& src, const Socket::SockInfo& dst);
         void del(const Socket::SockInfo& src);
+
+        const RouteMap& dstmap() { return dstMap_; };
+        const RouteMap& srcmap() { return srcMap_; };
     };
 
     class RouteManager

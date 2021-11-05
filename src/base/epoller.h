@@ -9,12 +9,16 @@ namespace Event
     using Evsptr = std::unique_ptr<struct epoll_event[]>;
     class Epoller
     {
-        public:
+    public:
         Epoller();
         ~Epoller(){};
         //no need to use shared pointer
         void updateEvent(Event& event);
         void removeEvent(Event& event);
+
+        void disableEvent(Event& event);//must thread safe
+        void enableEvent(Event& event);//must thread safe
+
         bool hasEvent(Event& event){return events_.count(event.fd()) > 0;}
         bool dispatch(int timeout);
 

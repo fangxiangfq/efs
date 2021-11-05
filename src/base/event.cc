@@ -40,14 +40,32 @@ namespace Event
 
     void TaskEvent::read()
     {
+        void* data = NULL;
+        ssize_t n = ::read(fd_.eventFd, &data, sizeof data);
+        if(n != 8){
+            STD_CRIT("eventfd read failed ret[%d] errno[%d]", n, errno);
+            return;
+        }
 
+        if(taskcb_)
+            taskcb_(data);
     }
 
-    void TaskEvent::write(Buffer::Buffer& buf)
+    void TaskEvent::write(const uint64_t& data)
     {
-
+        ssize_t n = ::write(fd_.eventFd, &data, sizeof data);
+        if(n != 8){
+            STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
+        }
     }
 
+    void TaskEvent::write(const void* data)
+    {
+        ssize_t n = ::write(fd_.eventFd, &data, sizeof data);
+        if(n != 8){
+            STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
+        }
+    }
 
     TimerEvent::TimerEvent(long time, EventsLoop* loop, bool looptimer)
     :Event(loop, EvType::timer)
@@ -105,12 +123,19 @@ namespace Event
 
     void UdpEvent::read()
     {
-         
+        if(msgcb_){
+            UdpEvPtr guardThis(shared_from_this());
+            msgcb_(guardThis);
+        }
     }
 
     void UdpEvent::write(Buffer::Buffer& buf) 
     {
-
+        int savedErrno = 0;
+        ssize_t n = buf.sendto(socket_.sock(), &savedErrno);
+        if(n != 8){
+            STD_CRIT("udpfd write failed ret[%d] errno[%d]", n, errno);
+        }
     }
 
     TcpListenEvent::TcpListenEvent(const ConnectCb& cb, const uint16_t& localPort, bool isHttp, EventsLoop* loop)

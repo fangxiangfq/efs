@@ -37,7 +37,7 @@ namespace Event
             //todo log
         }
     }
-    
+
     void Epoller::removeEvent(Event& event) 
     {
         struct epoll_event epev;
@@ -56,6 +56,32 @@ namespace Event
         }
     }
     
+    void Epoller::disableEvent(Event& event) 
+    {
+        struct epoll_event epev;
+        epev.data.fd = event.fd();
+        epev.events = event.events();
+        int op = EPOLL_CTL_DEL;
+       
+        if (::epoll_ctl(epfd_, op, event.fd(), &epev) < 0)
+        {
+            //todo log
+        }
+    }
+
+    void Epoller::enableEvent(Event& event) 
+    {
+        struct epoll_event epev;
+        epev.data.fd = event.fd();
+        epev.events = event.events();
+        int op = EPOLL_CTL_ADD;
+       
+        if (::epoll_ctl(epfd_, op, event.fd(), &epev) < 0)
+        {
+            //todo log
+        }
+    }
+
     bool Epoller::dispatch(int timeout) 
     {
         int num = epoll_wait(epfd_, evsptr_.get(), nfds_, timeout);

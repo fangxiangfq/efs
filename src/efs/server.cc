@@ -5,6 +5,7 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
 
+#define MTU_SIZE 1500
 namespace Server
 {
     Server::Server(Event::EventsLoop* loop,
@@ -54,7 +55,7 @@ namespace Server
 
         if(!loop_)
         {
-            //todo log
+            STD_CRIT("server[{}] init without valid loop", name_);
             return;
         }
 
@@ -64,6 +65,7 @@ namespace Server
         }
 
         evManager_.restManager_->enableRead();
+
         STD_INFO("start http listening on 0.0.0.0:{}", port);
     }
     
@@ -164,6 +166,7 @@ namespace Server
         portManager_.erase(it);
 
         evManager_.termManager_.emplace(terno, std::move(EvManager::createUdpEvPtr(port, peerPort, peerIp, loop_)));
+        evManager_.termManager_[terno]->setMsgCb(std::bind(&Server::onUdpMessage, this, _1));
         evManager_.termManager_[terno]->enableRead();
         return port;
     }
@@ -195,5 +198,39 @@ namespace Server
             return;
         }
         code = Rest::Code::terno_not_exist;
+    }
+
+    void Server::onUdpMessage(const Event::UdpEvPtr& ev) // make sure mem safe if ev removed during forward 
+    {
+        auto it = routeManager_.dstmap().find(ev->sock());
+        if(it->second.size() < maxForwardPerLoop_) //fullforward include no dst
+        {
+            auto& dstset = it->second; //ref for no cpy 
+            Event::EventsLoop* masterLoop = loop_;
+            //cpy value for thread safe
+            workerFactory_->postTask([ev, dstset, masterLoop] () ->void {
+            auto& src = ev->sock();
+            Buffer::Buffer buf(MTU_SIZE);
+            int saveErrno = 0;
+            ssize_t n = buf.recv(src.sockfd_, &saveErrno, MTU_SIZE);
+            if(n <= 0){
+                STD_ERROR("read error errno{} fd{} port{}", saveErrno, src.sockfd_, src.localAddr_.port()); //do not close
+                masterLoop->enableEvent(*ev);
+                return;
+            }
+
+            for(auto &dst : dstset){
+                n = buf.sendto(dst, &saveErrno);
+                if(n <= 0){
+                    STD_ERROR("send error errno{} fd{} port{}", saveErrno, dst.sockfd_, dst.localAddr_.port());//do not close
+                }
+            }
+            masterLoop->enableEvent(*ev);  
+            });
+        }
+        else
+        {
+            //todo live mode
+        }
     }
 }
