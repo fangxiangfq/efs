@@ -19,6 +19,10 @@ public:
 		spdlog::set_pattern("[EFS] %Y-%m-%d %H:%M:%S.%fZ [%l] [%t] [%P] [%!] %v -- %s:%#");
     }
 
+    void setLogLv(spdlog::level::level_enum log_level){
+        spdlog::set_level(log_level);
+    }
+
     Logger()
     {
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);

@@ -22,7 +22,7 @@ namespace Server
             kReusePort
         };
 
-        Server(Event::EventsLoop* loop, const std::string& nameArg = "efs", uint16_t threadNum = 8);
+        Server(Event::EventsLoop* loop, const std::string& nameArg = "efs", uint16_t threadNum = 7);
         ~Server(){};
         void init();
         const std::string& name() const { return name_; }
@@ -41,6 +41,8 @@ namespace Server
         Route::Router routeManager_;
         const size_t maxForwardPerLoop_{200};
     private:
+        void postTask(Thread::TaskCbPtr cb); //not used
+        void execTask(void* taskdata); //not used
         void portManagerInit(uint16_t min_media_port = 10000, uint16_t max_media_port = 30000);
         void restManagerInit(uint16_t port = 8000);
         void onHttpConnect(Event::HttpEvPtr httpev);

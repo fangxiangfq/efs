@@ -64,6 +64,7 @@ namespace Socket
             STD_CRIT("bind fail errno {}", errno);
             //todo log
         }
+        sock_.localAddr_ = localaddr;
     }
     
     void Socket::listen() 

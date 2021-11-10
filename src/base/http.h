@@ -16,6 +16,10 @@ namespace Http
         {
             kUnknown, kHttp10, kHttp11, kHttp20
         };
+       
+        HttpRequest()
+        :method_(Method::kInvalid),
+        version_(Version::kUnknown){}
 
         void setVersion(Version v) { version_ = v; }
         Version getVersion() const { return version_; }
@@ -41,7 +45,6 @@ namespace Http
         std::string query_;
         std::string body_;
         std::map<std::string, std::string> headers_;
-        //time
     };
 
     class HttpResponse

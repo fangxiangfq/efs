@@ -4,8 +4,9 @@ using std::placeholders::_1;
 
 namespace Thread
 {
-    WorkerFactory::WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
-    :baseLoop_(baseLoop),
+    WorkerFactory::WorkerFactory(const Event::TaskMsgCb& cb, Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
+    :cb_(cb),
+    baseLoop_(baseLoop),
     name_(nameArg),
     started_(false),
     threadNum_(threadNum),
@@ -26,7 +27,7 @@ namespace Thread
         for (int i = 0; i < threadNum_; ++i) 
         { 
             workertaskEv_.emplace_back(EvManager::createTaskEvPtr());
-            workertaskEv_[i]->setTaskCb(std::bind(WorkerFactory::execTask, _1));
+            workertaskEv_[i]->setTaskCb(std::bind(&WorkerFactory::execTask, _1));
             mastertaskEv_.emplace_back(EvManager::createTaskEvPtr());
         }
     }
@@ -63,6 +64,11 @@ namespace Thread
         return workerIdx_;
     }
 
+    Event::TaskEvPtr WorkerFactory::getNextWorkerEv() 
+    {
+        return workertaskEv_[getNextIdx()];
+    }
+
     Event::EventsLoop* WorkerFactory::getNextLoop() 
     {
         baseLoop_->assertSelfThread();
@@ -94,27 +100,28 @@ namespace Thread
         return loop;
     }
 
-    void WorkerFactory::postTask(TaskCb cb) 
+    void WorkerFactory::postTask(const TaskCbPtr& cb) 
     {
-        if(threadNum_ == 0){
-            cb();
+        if(0 == threadNum_){
+            if(cb)
+                (*cb)();
             return;
         }
 
-        TaskData* task = new TaskData(std::move(cb));
-        uint16_t idx = getNextIdx();
+        TaskData* task = new TaskData(cb);
 
-        auto& workerev = workertaskEv_[idx];
-
+        auto workerev = getNextWorkerEv();
+        
         workerev->write(task);
     }
 
-    void WorkerFactory::execTask(void* taskdata) 
+    void WorkerFactory::execTask(void* taskdata)
     {
         TaskData* task = static_cast<TaskData*>(taskdata);
         if(task->cb_)
-            task->cb_();
-        
+            (*task->cb_)();
+        task->cb_ = nullptr;
+
         delete task;
     }
 }

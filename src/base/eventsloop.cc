@@ -1,6 +1,7 @@
 #include "eventsloop.h"
 #include <unistd.h>
 #include <sys/eventfd.h>
+#include "logger.h"
 
 namespace Event
 {
@@ -18,7 +19,7 @@ namespace Event
     {
 
     }
-    
+
     void EventsLoop::loop()
     {
         assert(!looping_);
@@ -38,26 +39,28 @@ namespace Event
 
     void EventsLoop::updateEvent(Event& event) 
     {
-        assert(event->loop() == this);
+        assert(event.ownerLoop() == this);
         assertSelfThread();
         poller_->updateEvent(event);
     }
     
     void EventsLoop::removeEvent(Event& event) 
     {
-        assert(event->loop() == this);
+        assert(event.ownerLoop() == this);
         assertSelfThread();
         poller_->removeEvent(event);
     }
 
     void EventsLoop::disableEvent(Event& event) 
     {
-        poller_->updateEvent(event);
+        poller_->disableEvent(event);
+        STD_DEBUG("diable ev fd {}", event.fd());
     }
 
     void EventsLoop::enableEvent(Event& event) 
     {
-        poller_->updateEvent(event);
+        poller_->enableEvent(event);
+        STD_DEBUG("enable ev fd {}", event.fd());
     }
 
     void EventsLoop::post(const PostCb& cb)

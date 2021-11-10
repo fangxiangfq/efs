@@ -12,7 +12,7 @@ namespace Server
                   const std::string& nameArg, uint16_t threadNum) 
     :loop_(loop),
     name_(nameArg),
-    workerFactory_(new Thread::WorkerFactory(loop, name_, threadNum))
+    workerFactory_(new Thread::WorkerFactory(std::bind(&Server::execTask, this, _1), loop, name_, threadNum))
     {
         init(); 
     }
@@ -203,34 +203,69 @@ namespace Server
     void Server::onUdpMessage(const Event::UdpEvPtr& ev) // make sure mem safe if ev removed during forward 
     {
         auto it = routeManager_.dstmap().find(ev->sock());
-        if(it->second.size() < maxForwardPerLoop_) //fullforward include no dst
+        if(it == routeManager_.dstmap().end() || it->second.size() < maxForwardPerLoop_) //fullforward include no dst
         {
-            auto& dstset = it->second; //ref for no cpy 
             Event::EventsLoop* masterLoop = loop_;
             //cpy value for thread safe
-            workerFactory_->postTask([ev, dstset, masterLoop] () ->void {
-            auto& src = ev->sock();
-            Buffer::Buffer buf(MTU_SIZE);
-            int saveErrno = 0;
-            ssize_t n = buf.recv(src.sockfd_, &saveErrno, MTU_SIZE);
-            if(n <= 0){
-                STD_ERROR("read error errno{} fd{} port{}", saveErrno, src.sockfd_, src.localAddr_.port()); //do not close
-                masterLoop->enableEvent(*ev);
-                return;
-            }
-
-            for(auto &dst : dstset){
-                n = buf.sendto(dst, &saveErrno);
+            masterLoop->disableEvent(*ev);
+            Event::UdpEvPtr evPtr = ev;
+            std::shared_ptr<Route::RouteSet> setPtr(nullptr);
+            if(it != routeManager_.dstmap().end())
+                setPtr.reset(new Route::RouteSet(it->second));
+            Thread::TaskCbPtr TaskPtr(new Thread::TaskCb([setPtr, evPtr, masterLoop](){
+                auto& src = evPtr->sock();
+                Buffer::Buffer buf(2*MTU_SIZE);
+                int saveErrno = 0;
+                ssize_t n = buf.recv(src.sockfd_, &saveErrno, 2*MTU_SIZE);
                 if(n <= 0){
-                    STD_ERROR("send error errno{} fd{} port{}", saveErrno, dst.sockfd_, dst.localAddr_.port());//do not close
+                    STD_ERROR("read error ret[{}] errno[{}] fd[{}] port[{}]", n, saveErrno, src.sockfd_, src.localAddr_.port()); //do not close
+                    masterLoop->enableEvent(*evPtr);
+                    return;
                 }
-            }
-            masterLoop->enableEvent(*ev);  
-            });
+
+                if(!setPtr){
+                    masterLoop->enableEvent(*evPtr); 
+                    return;
+                }
+
+                for(auto &dst : *setPtr){
+                    n = buf.sendto(dst, &saveErrno);
+                    if(n <= 0){
+                       STD_ERROR("send error ret[{}] errno[{}] fd[{}] port[{}]", n, saveErrno, dst.sockfd_, dst.localAddr_.port());//do not close
+                    }
+                }
+                masterLoop->enableEvent(*evPtr); 
+            }));
+            workerFactory_->postTask(TaskPtr);
         }
         else
         {
             //todo live mode
         }
+    }
+
+    void Server::postTask(Thread::TaskCbPtr cb) 
+    {
+        if(workerFactory_->getThreadNum() == 0){
+            if(cb)
+                (*cb)();
+            return;
+        }
+
+        Thread::TaskData* task = new Thread::TaskData(cb);
+
+        auto workerev = workerFactory_->getNextWorkerEv();
+
+        workerev->write(task);
+    }
+
+    void Server::execTask(void* taskdata)
+    {
+        Thread::TaskData* task = static_cast<Thread::TaskData*>(taskdata);
+        STD_CRIT("read data pointer {}", static_cast<void*>(task));
+        if(task->cb_)
+            (*task->cb_)();
+        task->cb_ = nullptr;
+        delete task;
     }
 }

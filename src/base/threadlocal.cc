@@ -84,7 +84,7 @@ namespace ThreadLocal
 
     void ThreadLocal::shutdownGlobalThreading()
     {
-        assert(std::this_thread::get_id() == main_thread_id_);
+        assert(std::this_thread::get_id() == mainThreadId_);
         assert(!shutdown_);
         shutdown_ = true;
     }
@@ -115,7 +115,7 @@ namespace ThreadLocal
 
     void ThreadLocal::removeSlot(SlotImpl& slot)
     {
-        assert(std::this_thread::get_id() == main_thread_id_);
+        assert(std::this_thread::get_id() == mainThreadId_);
         assert(!shutdown_);
         const uint64_t index = slot.index_;
         slots_[index] = nullptr;

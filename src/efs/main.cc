@@ -7,4 +7,6 @@ int main(int argc, char** argv)
     Server::Server serv(&loop);
     serv.start();
     loop.loop();
+
+    return 0;
 }

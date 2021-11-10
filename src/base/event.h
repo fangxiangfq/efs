@@ -88,7 +88,7 @@ namespace Event
         void setTaskCb(const TaskMsgCb& cb) { taskcb_ = cb; }
         void read() override;
         void write(Buffer::Buffer& buf) override {};
-        void write(const uint64_t& data);
+        void write(const uint64_t& data);//for wakeup, cant not used with void write(const void* data) in same event
         void write(const void* data);
     private:
         TaskMsgCb taskcb_;

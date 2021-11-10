@@ -47,6 +47,7 @@ namespace Event
             return;
         }
 
+        STD_DEBUG("read data pointer {}", data);
         if(taskcb_)
             taskcb_(data);
     }
@@ -57,6 +58,7 @@ namespace Event
         if(n != 8){
             STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
         }
+
     }
 
     void TaskEvent::write(const void* data)
@@ -65,6 +67,7 @@ namespace Event
         if(n != 8){
             STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
         }
+        STD_DEBUG("write data pointer {}", data);
     }
 
     TimerEvent::TimerEvent(long time, EventsLoop* loop, bool looptimer)

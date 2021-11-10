@@ -53,6 +53,6 @@ namespace Buffer
             *savedErrno = errno;
         }
 
-        return 0;
+        return n;
     }
 }
