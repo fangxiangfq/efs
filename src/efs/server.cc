@@ -112,7 +112,6 @@ namespace Server
                     Rest::setHttpResponse(rsp, code);
                     return;
                 }
-                code = Rest::Code::server_error;
             }
         }
         else if(req.path() == "/delete")
@@ -155,13 +154,13 @@ namespace Server
             return 0;
         }
 
-        auto it = portManager_.begin();
         if(evManager_.termManager_.count(terno) != 0)
         {
             code = Rest::Code::terno_exist;
             return 0;
         }
 
+        auto it = portManager_.begin();
         uint16_t port = *it;
         portManager_.erase(it);
 
@@ -178,6 +177,7 @@ namespace Server
         {
             it->second->disableAll();
             it->second->remove();
+            portManager_.emplace(it->second->sock().localAddr_.port());
             evManager_.termManager_.erase(it);
         }
     }
@@ -209,14 +209,14 @@ namespace Server
             //cpy value for thread safe
             masterLoop->disableEvent(*ev);
             Event::UdpEvPtr evPtr = ev;
-            std::shared_ptr<Route::RouteSet> setPtr(nullptr);
+            std::shared_ptr<Route::RouteSet> setPtr;
             if(it != routeManager_.dstmap().end())
                 setPtr.reset(new Route::RouteSet(it->second));
             Thread::TaskCbPtr TaskPtr(new Thread::TaskCb([setPtr, evPtr, masterLoop](){
                 auto& src = evPtr->sock();
-                Buffer::Buffer buf(2*MTU_SIZE);
+                Buffer::Buffer buf(MTU_SIZE);
                 int saveErrno = 0;
-                ssize_t n = buf.recv(src.sockfd_, &saveErrno, 2*MTU_SIZE);
+                ssize_t n = buf.recv(src.sockfd_, &saveErrno, MTU_SIZE);
                 if(n <= 0){
                     STD_ERROR("read error ret[{}] errno[{}] fd[{}] port[{}]", n, saveErrno, src.sockfd_, src.localAddr_.port()); //do not close
                     masterLoop->enableEvent(*evPtr);
@@ -238,9 +238,47 @@ namespace Server
             }));
             workerFactory_->postTask(TaskPtr);
         }
-        else
+        else//live mode
         {
-            //todo live mode
+            auto& src = ev->sock();
+            int saveErrno = 0;
+            std::shared_ptr<Buffer::Buffer> buf(new Buffer::Buffer(MTU_SIZE));
+            ssize_t n = buf->recv(src.sockfd_, &saveErrno, MTU_SIZE);
+            if(n <= 0){
+                STD_ERROR("read error ret[{}] errno[{}] fd[{}] port[{}]", n, saveErrno, src.sockfd_, src.localAddr_.port()); //do not close
+                return;
+            }
+
+            uint16_t threadNum = workerFactory_->getThreadNum();
+            if(!threadNum){//no worker
+                for(auto &dst : it->second){
+                    n = buf->sendto(dst, &saveErrno);
+                    if(n <= 0){
+                        STD_ERROR("send error ret[{}] errno[{}] fd[{}] port[{}]", n, saveErrno, dst.sockfd_, dst.localAddr_.port());//do not close
+                    }
+                }
+                return;
+            }
+
+            size_t interval = it->second.size() / threadNum;
+            std::shared_ptr<Route::RouteSet> setPtr(new Route::RouteSet(it->second));
+            for(uint16_t i = 0; i < threadNum; ++i){
+                Thread::TaskCbPtr TaskPtr(new Thread::TaskCb([buf, setPtr, i, interval](){
+                    size_t count = 0;
+                    for(auto& dst : *setPtr){ //todo 
+                        if(count >= i * interval && count < (i+1)* interval){
+                            int saveErr = 0;
+                            ssize_t len = buf->sendto(dst, &saveErr);
+                            if(len <= 0){
+                                STD_ERROR("send error ret[{}] errno[{}] fd[{}] port[{}]", len, saveErr, dst.sockfd_, dst.localAddr_.port());//do not close
+                            }
+                        }
+                        count++;
+                    }
+                }));
+
+                workerFactory_->postTask(TaskPtr);
+            }
         }
     }
 

@@ -7,6 +7,7 @@
 
 using loggerPtr = std::shared_ptr<spdlog::logger>;
 
+using namespace spdlog::level;
 class Logger
 {
 public:
@@ -16,10 +17,10 @@ public:
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);
         stdout_ = spdlog::stdout_color_mt("stdout");
         
-		spdlog::set_pattern("[EFS] %Y-%m-%d %H:%M:%S.%fZ [%l] [%t] [%P] [%!] %v -- %s:%#");
+		spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%fZ [%l] [%P] [%t] [%!] %v -- %s:%#");
     }
 
-    void setLogLv(spdlog::level::level_enum log_level){
+    void setLogLv(level_enum log_level){
         spdlog::set_level(log_level);
     }
 
@@ -28,7 +29,7 @@ public:
         logger_ = spdlog::create<spdlog::sinks::basic_file_sink_mt>("logger", filename_);
         stdout_ = spdlog::stdout_color_mt("stdout");
         
-		spdlog::set_pattern("[EFS] %Y-%m-%d %H:%M:%S.%fZ [%l] [%t] [%P] [%!] %v -- %s:%#");
+		spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%fZ [%l] [%P] [%t] [%!] %v -- %s:%#");
     }
 
     ~Logger()=default;
