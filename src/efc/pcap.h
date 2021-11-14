@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <list>
+#include <vector>
 #include "buffer.h"
 
 namespace Efc
@@ -34,10 +34,12 @@ namespace Efc
     public:
         PcapReader(){};
         ~PcapReader();
-        bool Open(const char* file);
-        void Parse(bool linuxCooked);
+        bool open(const char* file);
+        void parse(bool linuxCooked);
+
+        std::pair<const std::shared_ptr<Buffer::Buffer>&, const std::vector<packet>&> data();
     private:
-        void Next();
+        void next();
         size_t fileSize_{0};
         size_t curReadSize_{0};
         size_t packNum_{0};
@@ -46,6 +48,6 @@ namespace Efc
         bool fileOpened_{0};
 
         std::shared_ptr<Buffer::Buffer> buf_;
-        std::list<packet> packs_;
+        std::vector<packet> packs_;
     };
 }

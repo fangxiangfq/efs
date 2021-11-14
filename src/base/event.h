@@ -97,11 +97,13 @@ namespace Event
     class TimerEvent : public Event
     {
     public:
-        TimerEvent(long time, EventsLoop* loop = NULL, bool looptimer = false);//us
+        TimerEvent(const EventCallback& cb, long time, bool looptimer = false, EventsLoop* loop = NULL);//us
         ~TimerEvent() { ::close(fd_.fd); }
         void set(long time, bool loop);
         void read() override;
         void write(Buffer::Buffer& buf) override;
+    private:
+        EventCallback cb_;
     };
 
     class UdpEvent;

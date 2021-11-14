@@ -14,7 +14,7 @@ namespace Server
     name_(nameArg),
     workerFactory_(new Thread::WorkerFactory(loop, name_, threadNum))
     {
-        setLogLevel(trace);
+        setLogLevel(debug);
         init(); 
         STD_DEBUG("server construct ok, threadnum {}", threadNum);
     }

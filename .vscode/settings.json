@@ -67,7 +67,8 @@
         "xlocmes": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "*.rh": "cpp"
+        "*.rh": "cpp",
+        "iostream": "cpp"
     },
     "cmake.configureOnOpen": true
 }

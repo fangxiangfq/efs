@@ -70,8 +70,8 @@ namespace Event
         STD_DEBUG("write data pointer {}", data);
     }
 
-    TimerEvent::TimerEvent(long time, EventsLoop* loop, bool looptimer)
-    :Event(loop, EvType::timer)
+    TimerEvent::TimerEvent(const EventCallback& cb, long time, bool looptimer, EventsLoop* loop)
+    :Event(loop, EvType::timer), cb_(cb)
     {
         fd_.timerFd = ::timerfd_create(CLOCK_MONOTONIC, EFD_NONBLOCK | EFD_CLOEXEC);
         if(fd_.fd < 0)
@@ -103,7 +103,8 @@ namespace Event
 
     void TimerEvent::read()
     {
-
+        if(cb_)
+            cb_();
     }
 
     void TimerEvent::write(Buffer::Buffer& buf)

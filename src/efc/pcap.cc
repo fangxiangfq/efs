@@ -17,10 +17,10 @@ namespace Efc
             close(fd_);
     }
 
-    bool PcapReader::Open(const char* file) 
+    bool PcapReader::open(const char* file) 
     {
         int saveErrno = 0;
-        fd_ = open(file, O_RDONLY);
+        fd_ = ::open(file, O_RDONLY);
         if(fd_ < 0){
             STD_ERROR("read file[{}] fail errno[{}]", file, errno);
             return false;
@@ -57,7 +57,7 @@ namespace Efc
         return true;
     }
     
-    void PcapReader::Parse(bool linuxCooked) 
+    void PcapReader::parse(bool linuxCooked) 
     {
         assert(fileOpened_);
         int saveErrno = 0;
@@ -70,11 +70,11 @@ namespace Efc
         }
 
         while(curReadSize_ < fileSize_){
-            Next();
+            next();
         }
     }
 
-    void PcapReader::Next() 
+    void PcapReader::next() 
     {
         pcap_pkthdr pkthdr;// host byte order
         pkthdr.ts.tv_sec = buf_->read<uint32_t>();
@@ -111,5 +111,10 @@ namespace Efc
         packs_.emplace_back(pkthdr.ts, buf_->peek(), udphdr.udplen - 8);
 
         buf_->retrieve(udphdr.udplen - 8);
+    }
+
+    std::pair<const std::shared_ptr<Buffer::Buffer>&, const std::vector<packet>&> PcapReader::data()
+    {
+        return std::make_pair<const std::shared_ptr<Buffer::Buffer>&, const std::vector<packet>&>(buf_, packs_);
     }
 }
