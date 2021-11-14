@@ -12,9 +12,11 @@ namespace Server
                   const std::string& nameArg, uint16_t threadNum) 
     :loop_(loop),
     name_(nameArg),
-    workerFactory_(new Thread::WorkerFactory(std::bind(&Server::execTask, this, _1), loop, name_, threadNum))
+    workerFactory_(new Thread::WorkerFactory(loop, name_, threadNum))
     {
+        setLogLevel(trace);
         init(); 
+        STD_DEBUG("server construct ok, threadnum {}", threadNum);
     }
     
     void Server::init() 

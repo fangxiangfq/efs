@@ -22,7 +22,7 @@ namespace Thread
     class WorkerFactory
     {
     public:
-        WorkerFactory(const Event::TaskMsgCb& cb, Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum = 8);
+        WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum = 8);
         ~WorkerFactory();
         void init();
         void start(const WorkInitCb& cb = WorkInitCb());

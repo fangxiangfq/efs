@@ -4,9 +4,8 @@ using std::placeholders::_1;
 
 namespace Thread
 {
-    WorkerFactory::WorkerFactory(const Event::TaskMsgCb& cb, Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
-    :cb_(cb),
-    baseLoop_(baseLoop),
+    WorkerFactory::WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum)
+    :baseLoop_(baseLoop),
     name_(nameArg),
     started_(false),
     threadNum_(threadNum),

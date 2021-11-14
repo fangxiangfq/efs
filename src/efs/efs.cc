@@ -124,8 +124,7 @@ void Efs::onLocalMessage(Event::Event& ev)
             break;
         }
 
-        uint32_t leftLen = 0;
-        buf.read(leftLen);
+        uint32_t leftLen = buf.read<uint32_t>();
         len = buf.recv(fd, &savedErrno, static_cast<size_t>(leftLen));
 
         if(0 > len)
@@ -176,19 +175,19 @@ bool Efs::checkTaskHeader(Buffer::Buffer& buf, uint16_t& task)
 {
     assert(buf.readableBytes() < 8);
     char ch;
-    buf.read(ch);
+    ch = buf.read<char>();
     if(ch != 't')
         return false;
-    buf.read(ch);
+    ch = buf.read<char>();
     if(ch != 'a')
         return false;
-    buf.read(ch);
+    ch = buf.read<char>();
     if(ch != 's')
         return false;
-    buf.read(ch);
+    ch = buf.read<char>();
     if(ch != 'k')
         return false;
-    buf.read(task);
+    task = buf.read<uint16_t>();
     return true;
 }
 

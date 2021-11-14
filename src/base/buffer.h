@@ -134,16 +134,32 @@ namespace Buffer
         ssize_t send(int fd, int* savedErrno, size_t len);
         ssize_t send(int fd, int* savedErrno);
         ssize_t sendto(const Socket::SockInfo& info, int* savedErrno);
-        
+        ssize_t fread(int fd, int* savedErrno, size_t len) { return recv(fd, savedErrno, len); }
         //only support basic type without type cast
         template <typename T>
-        void read(T& x) 
+        T read() 
         { 
             assert(readableBytes() >= sizeof(T));
             T ret;
             ::memcpy(&ret, peek(), sizeof(T));
             retrieve(sizeof(T));
-            x = ret;
+            return ret;
+        }
+
+        template <typename T>
+        T nread()  // network byte order read
+        {
+            assert(readableBytes() >= sizeof(T));
+            T ret;
+            void* pv = &ret;
+            char* pc = static_cast<char*>(pv);
+            size_t size = sizeof(T);
+            for(size_t i = size; i > 0; --i){
+                ::memcpy(pc + i - 1, peek(), 1);
+                retrieve(1);
+            }
+            
+            return ret;
         }
 
         //only support basic type without type cast
@@ -157,7 +173,7 @@ namespace Buffer
         template <typename T>
         void prewrite(const T& x) 
         { 
-            append(&x, sizeof(T));
+            prepend(&x, sizeof(T));
         }
 
     private:
