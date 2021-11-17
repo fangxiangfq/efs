@@ -28,8 +28,15 @@ namespace Efc
     void Client::setThreadData() 
     {
         auto data = reader_.data();
-        for(uint16_t i = 0; i < threadNum_; ++i){
-            
+        uint16_t threadNum = workerFactory_->getThreadNum();
+        size_t interval = dsts_.size() / (threadNum + 1);
+        auto it = dsts_.begin();
+        for(uint16_t i = 0; i < threadNum; ++i){
+            std::vector<Net::InetAddress> tmp(it, it + interval);
+            it += interval;
+            threadDatas_[i] = std::make_shared<ThreadData>(std::move(tmp), data.first, data.second);
         }
+        std::vector<Net::InetAddress> tmp(it, dsts_.end());
+        threadDatas_[threadNum] = std::make_shared<ThreadData>(std::move(tmp), data.first, data.second);
     }
 }

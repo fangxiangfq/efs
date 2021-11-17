@@ -1,0 +1,2 @@
+add_executable(eventfd_test eventfd_test.cc)
+target_link_libraries(eventfd_test efs_base)

@@ -44,3 +44,5 @@ target_link_libraries(efs pthread rt)
 target_link_libraries(efs jsoncpp)
 target_link_libraries(efc pthread rt)
 target_link_libraries(efc jsoncpp)
+
+add_subdirectory(test)

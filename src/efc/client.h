@@ -30,6 +30,8 @@ namespace Efc
 
         struct ThreadData
         {
+            ThreadData(std::vector<Net::InetAddress>&& dsts, const std::shared_ptr<Buffer::Buffer>& buf, const std::vector<packet>& packs)
+            :curpos_(0), packs_(packs), dsts_(dsts), buf_(buf){}
             size_t curpos_;
             std::vector<packet> packs_;
             std::vector<Net::InetAddress> dsts_;

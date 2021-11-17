@@ -43,7 +43,7 @@ namespace Event
         void* data = NULL;
         ssize_t n = ::read(fd_.eventFd, &data, sizeof data);
         if(n != 8){
-            STD_CRIT("eventfd read failed ret[%d] errno[%d]", n, errno);
+            STD_CRIT("eventfd read failed ret[{}] errno[{}]", n, errno);
             return;
         }
 
@@ -56,7 +56,7 @@ namespace Event
     {
         ssize_t n = ::write(fd_.eventFd, &data, sizeof data);
         if(n != 8){
-            STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
+            STD_CRIT("eventfd write failed ret[{}] errno[{}]", n, errno);
         }
 
     }
@@ -65,7 +65,7 @@ namespace Event
     {
         ssize_t n = ::write(fd_.eventFd, &data, sizeof data);
         if(n != 8){
-            STD_CRIT("eventfd write failed ret[%d] errno[%d]", n, errno);
+            STD_CRIT("eventfd write failed ret[{}] errno[{}]", n, errno);
         }
         STD_DEBUG("write data pointer {}", data);
     }
