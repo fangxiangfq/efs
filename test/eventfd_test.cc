@@ -1,7 +1,7 @@
 #include "event.h"
 #include "logger.h"
 /*************************************************************
-Conclusion: Not suitable for transferring data between threads
+Conclusion: EventFd Not suitable for transferring data between threads
 
 
 [2021-11-17 22:10:30.858] [debug] [event.cc:70] write data pointer 0x7fff3352f710
