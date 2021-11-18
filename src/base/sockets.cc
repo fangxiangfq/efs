@@ -8,8 +8,8 @@
 using namespace Net;
 namespace Socket
 {
-    SocketPair::SocketPair()
-    :first_(-1), second_(-1) 
+    SocketPair::SocketPair(bool close)
+    :first_(-1), second_(-1), close_(close)
     {
         int socket_pair[2] = {-1, -1};
         if(0 > ::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, socket_pair))
@@ -23,8 +23,10 @@ namespace Socket
     
     SocketPair::~SocketPair() 
     {
-        ::close(first_);
-        ::close(second_);
+        if(close_){
+            ::close(first_);
+            ::close(second_);
+        }
     }
     
     Socket::Socket(SockType type) 

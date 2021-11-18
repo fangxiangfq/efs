@@ -9,7 +9,7 @@ namespace Socket
     class SocketPair
     {
     public:
-        explicit SocketPair();
+        explicit SocketPair(bool close = false);
         ~SocketPair();
         SocketPair(const SocketPair&)=delete;
         SocketPair operator=(const SocketPair&)=delete;
@@ -17,7 +17,8 @@ namespace Socket
         int second(){return second_;}
     private:
         int first_;
-        int second_;     
+        int second_;  
+        bool close_; 
     };
 
     using SocketPtr = std::unique_ptr<SocketPair>;
