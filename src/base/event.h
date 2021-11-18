@@ -20,8 +20,8 @@ namespace Event
         int fd;
         //
         int eventFd;
-        int spFirst;
-        int spSecond;
+        int sockpair1;
+        int sockpair2;
         int timerFd;
         int signalFd;
         int udpSockFd;
@@ -33,7 +33,8 @@ namespace Event
     enum class EvType
     {
         task,
-        sockpair,
+        sockpair1,
+        sockpair2,
         timer,
         signal,
         udp,
@@ -105,6 +106,7 @@ namespace Event
     private:
         EventCallback cb_;
     };
+    using TimerEvPtr = std::shared_ptr<TimerEvent>;
 
     class UdpEvent;
     using UdpEvPtr = std::shared_ptr<UdpEvent>;
@@ -177,6 +179,22 @@ namespace Event
         bool isHttpListening_;
         Socket::Socket socket_;
     };
+
+    class SockPairEvent : public Event
+    {
+    public:
+        SockPairEvent(const int& pairfd, bool isFirst = true, EventsLoop* loop = NULL);
+        ~SockPairEvent(){ ::close(fd_.fd); }
+        void setTaskCb(const TaskMsgCb& cb) { taskcb_ = cb; }
+        void read() override;
+        void write(Buffer::Buffer& buf) override {};
+        void write(const void* data);
+    private:
+        TaskMsgCb taskcb_;    
+    };
+
+    using SockPairPtr = std::shared_ptr<SockPairEvent>;
+    using SockPairPtrPair = std::pair<SockPairPtr, SockPairPtr>;
 } // namespace Event
   
  

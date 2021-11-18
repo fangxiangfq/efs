@@ -9,8 +9,7 @@ namespace Thread
     name_(nameArg),
     started_(false),
     threadNum_(threadNum),
-    workerIdx_(0),
-    threads_(threadNum_)
+    workerIdx_(0)
     {
         init();
     }
@@ -25,9 +24,14 @@ namespace Thread
         assert(!started_);
         for (int i = 0; i < threadNum_; ++i) 
         { 
-            workertaskEv_.emplace_back(EvManager::createTaskEvPtr());
-            workertaskEv_[i]->setTaskCb(std::bind(&WorkerFactory::execTask, _1));
-            mastertaskEv_.emplace_back(EvManager::createTaskEvPtr());
+            // workertaskEv_.emplace_back(EvManager::createTaskEvPtr());
+            // workertaskEv_[i]->setTaskCb(std::bind(&WorkerFactory::execTask, _1));
+            // mastertaskEv_.emplace_back(EvManager::createTaskEvPtr());
+
+            taskSockPairEv_.emplace_back(EvManager::createSockPairPtrPair(baseLoop_));
+            taskSockPairEv_[i].first->setTaskCb(std::bind(&WorkerFactory::execTask, _1));
+            taskSockPairEv_[i].first->enableRead();
+            taskSockPairEv_[i].second->setTaskCb(std::bind(&WorkerFactory::execTask, _1));
         }
     }
     
@@ -42,9 +46,9 @@ namespace Thread
         {
             char buf[name_.size() + 32];
             snprintf(buf, sizeof buf, "%s%d", name_.c_str(), i);
-            std::unique_ptr<Thread> worker(new Thread(workertaskEv_[i], cb, std::string(buf)));
-            loops_.push_back(worker->startLoop());
-            threads_.push_back(std::move(worker));
+            std::unique_ptr<Thread> worker(new Thread(taskSockPairEv_[i].second, cb, std::string(buf)));
+            loops_.emplace_back(worker->startLoop());
+            threads_.emplace_back(std::move(worker));
         }
 
         if (0 == threadNum_ && cb)
@@ -66,6 +70,11 @@ namespace Thread
     Event::TaskEvPtr WorkerFactory::getNextWorkerEv() 
     {
         return workertaskEv_[getNextIdx()];
+    }
+
+    Event::SockPairPtr WorkerFactory::getNextWorkerSockEv() 
+    {
+        return taskSockPairEv_[getNextIdx()].first;
     }
 
     Event::EventsLoop* WorkerFactory::getNextLoop() 
@@ -109,7 +118,7 @@ namespace Thread
 
         TaskData* task = new TaskData(cb);
 
-        auto workerev = getNextWorkerEv();
+        auto workerev = getNextWorkerSockEv();
         
         workerev->write(task);
     }

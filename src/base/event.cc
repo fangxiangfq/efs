@@ -315,4 +315,38 @@ namespace Event
         if(closecb_)
             closecb_(guardThis);
     }
+
+    SockPairEvent::SockPairEvent(const int& pairfd, bool isFirst, EventsLoop* loop)
+    :Event(loop, (isFirst ? EvType::sockpair1 : EvType::sockpair2))
+    {
+        fd_.sockpair1 = pairfd;
+        if(fd_.fd < 0)
+        {
+            //todo log
+            abort();
+        }
+    }
+
+    void SockPairEvent::read()
+    {
+        void* data = NULL;
+        ssize_t n = ::read(fd_.fd, &data, sizeof data);
+        if(n != 8){
+            STD_CRIT("sockpair read failed ret[{}] errno[{}]", n, errno);
+            return;
+        }
+
+        STD_DEBUG("read data pointer {}", data);
+        if(taskcb_)
+            taskcb_(data);
+    }
+
+    void SockPairEvent::write(const void* data)
+    {
+        ssize_t n = ::write(fd_.fd, &data, sizeof data);
+        if(n != 8){
+            STD_CRIT("sockpair write failed ret[{}] errno[{}]", n, errno);
+        }
+        STD_DEBUG("write data pointer {}", data);
+    }
 }

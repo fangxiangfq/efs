@@ -4,7 +4,7 @@
 using namespace Event;
 namespace Thread
 {
-    Thread::Thread(Event::TaskEvPtr workerEv, const ThreadInitCallback& cb,
+    Thread::Thread(Event::SockPairPtr workerEv, const ThreadInitCallback& cb,
                       const std::string& name) 
     :loop_(NULL),
     exiting_(false),

@@ -24,11 +24,11 @@ namespace Thread
     public:
         WorkerFactory(Event::EventsLoop* baseLoop, const std::string& nameArg, uint16_t threadNum = 8);
         ~WorkerFactory();
-        void init();
         void start(const WorkInitCb& cb = WorkInitCb());
         uint16_t getThreadNum() const { return threadNum_; }
         uint16_t getNextIdx(); 
-        Event::TaskEvPtr getNextWorkerEv(); 
+        Event::TaskEvPtr getNextWorkerEv();
+        Event::SockPairPtr getNextWorkerSockEv();  
         Event::EventsLoop* getNextLoop();
         Event::EventsLoop* getLoopForHash(size_t hashCode);
         
@@ -36,8 +36,10 @@ namespace Thread
         const std::string& name() const { return name_; }
 
         void postTask(const TaskCbPtr& cb);
-        static void execTask(void* taskdata);
     private:
+        void init();
+        static void execTask(void* taskdata);
+
         Event::TaskMsgCb cb_;
         Event::EventsLoop* baseLoop_;
         std::string name_;
@@ -45,9 +47,10 @@ namespace Thread
         uint16_t threadNum_;
         uint16_t workerIdx_;
         std::map<uint16_t, TaskCb> taskMap_;
-        std::vector<Event::TaskEvPtr> workertaskEv_;
-        std::vector<Event::TaskEvPtr> mastertaskEv_;
+        std::vector<Event::TaskEvPtr> workertaskEv_; //not used
+        std::vector<Event::TaskEvPtr> mastertaskEv_; //not used
         std::vector<std::unique_ptr<Thread>> threads_;
         std::vector<Event::EventsLoop*> loops_;
+        std::vector<Event::SockPairPtrPair> taskSockPairEv_;
     };
 }

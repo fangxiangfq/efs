@@ -54,6 +54,27 @@ namespace Event
         {
             return std::make_shared<UdpEvent>(localPort, peerPort, peerIp, loop);
         }
+
+        static TimerEvPtr createTimerEvPtr(const EventCallback& cb, long time, bool looptimer, EventsLoop* loop)
+        {
+            return std::make_shared<TimerEvent>(cb, time, looptimer, loop);
+        }
+
+        static TimerEvPtr createTimerEvPtr(const EventCallback& cb, long time, bool looptimer)
+        {
+            return std::make_shared<TimerEvent>(cb, time, looptimer);
+        }
+
+        static TimerEvPtr createTimerEvPtr(const EventCallback& cb, long time)
+        {
+            return std::make_shared<TimerEvent>(cb, time);
+        }
+
+        static SockPairPtrPair createSockPairPtrPair(EventsLoop* loop)
+        {
+            Socket::SocketPair sockpair; 
+            return std::make_pair(std::make_shared<SockPairEvent>(sockpair.first(), true, loop), std::make_shared<SockPairEvent>(sockpair.second(), false));
+        }
     };
 }
 
