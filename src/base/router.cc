@@ -2,6 +2,32 @@
 
 namespace Route
 {
+    void delFromDst(const Socket::SockInfo& src, const Socket::SockInfo& dst)
+    {
+        auto it = dstMap_.find(src);
+        if(it != dstMap_.end())
+        {
+            it->second.erase(dst);
+            if(0 == it->second.size())
+            {
+                dstMap_.erase(it);
+            }   
+        }
+    }
+
+    void delFromSrc(const Socket::SockInfo& src, const Socket::SockInfo& dst)
+    {
+        auto it = srcMap_.find(dst);
+        if(it != srcMap_.end())
+        {
+            it->second.erase(src);
+            if(0 == it->second.size())
+            {
+                srcMap_.erase(it);
+            }   
+        }
+    }
+
     void Router::add(const Socket::SockInfo& src, const Socket::SockInfo& dst) 
     {
         auto it = dstMap_.find(src);
@@ -27,25 +53,8 @@ namespace Route
     
     void Router::del(const Socket::SockInfo& src, const Socket::SockInfo& dst) 
     {
-        auto it = dstMap_.find(src);
-        if(it != dstMap_.end())
-        {
-            it->second.erase(dst);
-            if(0 == it->second.size())
-            {
-                dstMap_.erase(it);
-            }   
-        }
-
-        it = srcMap_.find(dst);
-        if(it != srcMap_.end())
-        {
-            it->second.erase(src);
-            if(0 == it->second.size())
-            {
-                srcMap_.erase(it);
-            }   
-        }
+        delFromDst(src, dst);
+        delFromSrc(src, dst);
     }
     
     void Router::del(const Socket::SockInfo& src) //may it unsafe
@@ -55,9 +64,10 @@ namespace Route
         {
             for(auto it2 = it->second.begin(); it2 != it->second.end();)
             {
-                del(src, *it2);
+                delFromSrc(*it2, src);
                 it2++;
             }
+            dstMap_.erase(it);
         }
 
         it = srcMap_.find(src);
@@ -65,9 +75,10 @@ namespace Route
         {
             for(auto it2 = it->second.begin(); it2 != it->second.end();)
             {
-                del(*it2, src);
+                delFromDst(*it2, src);
                 it2++;
             }
+            srcMap_.erase(it);
         }
     }
 
